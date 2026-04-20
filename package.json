@@ -1,0 +1,14 @@
+{
+  "name": "shotime-inventory",
+  "version": "1.0.0",
+  "description": "Shotime Sports Cards Inventory Manager",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "lowdb": "^1.0.0"
+  }
+}
