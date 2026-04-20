@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shotime Sports Cards — Inventory</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0e0e12; --surface: #16161d; --card: #1d1d27; --border: #2a2a3a;
+  --accent: #f5c518; --green: #2ecc71; --red: #e74c3c; --blue: #4a9eff;
+  --text: #f0f0f0; --muted: #7a7a90; --pill: #252535;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Barlow', sans-serif; min-height: 100vh; }
+
+header {
+  background: var(--surface); border-bottom: 3px solid var(--accent);
+  padding: 0 24px; display: flex; align-items: center; justify-content: space-between;
+  height: 64px; position: sticky; top: 0; z-index: 100;
+}
+.logo { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 1.6rem; letter-spacing: 2px; text-transform: uppercase; }
+.logo span { color: var(--accent); }
+.header-stats { display: flex; gap: 20px; }
+.hstat { text-align: center; }
+.hstat-val { font-family: 'Barlow Condensed', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--accent); }
+.hstat-val.green { color: var(--green); }
+.hstat-label { font-family: 'Barlow Condensed', sans-serif; font-size: 0.65rem; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+
+.tab-nav { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; }
+.tab-btn { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.9rem; letter-spacing: 1.5px; text-transform: uppercase; padding: 12px 24px; background: none; border: none; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -1px; transition: all 0.15s; }
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+.grand-bar { margin: 12px 24px; padding: 12px 20px; background: linear-gradient(135deg,#1a1a2e,#1d1d27); border: 1px solid var(--accent); border-radius: 8px; display: flex; gap: 28px; flex-wrap: wrap; align-items: center; }
+.grand-item { display: flex; flex-direction: column; }
+.grand-label { font-family: 'Barlow Condensed', sans-serif; font-size: 0.65rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
+.grand-val { font-family: 'Barlow Condensed', sans-serif; font-size: 1.3rem; font-weight: 900; }
+
+.toolbar { padding: 14px 24px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; background: var(--surface); border-bottom: 1px solid var(--border); }
+.search-wrap { position: relative; flex: 1; min-width: 200px; }
+.search-wrap input { width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px 8px 34px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
+.search-wrap input:focus { border-color: var(--accent); }
+.search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+.filter-select { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 0.9rem; outline: none; cursor: pointer; }
+
+.btn { padding: 7px 16px; border-radius: 6px; border: none; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.9rem; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all 0.15s; }
+.btn-primary { background: var(--accent); color: #111; }
+.btn-primary:hover { background: #e0b010; }
+.btn-sm { padding: 4px 9px; font-size: 0.75rem; }
+.btn-edit { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+.btn-edit:hover { color: var(--text); border-color: var(--text); }
+.btn-sold { background: transparent; color: var(--green); border: 1px solid var(--green); }
+.btn-sold:hover { background: var(--green); color: #fff; }
+.btn-danger { background: transparent; color: var(--red); border: 1px solid var(--red); }
+.btn-danger:hover { background: var(--red); color: #fff; }
+.btn-ebay { background: transparent; color: #e53238; border: 1px solid #e53238; }
+.btn-ebay:hover { background: #e53238; color: #fff; }
+.btn-cl { background: transparent; color: var(--blue); border: 1px solid var(--blue); }
+.btn-cl:hover { background: var(--blue); color: #fff; }
+.btn-export { background: transparent; color: var(--green); border: 1px solid var(--green); }
+.btn-export:hover { background: var(--green); color: #111; }
+.btn-cancel { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+.btn-cancel:hover { border-color: var(--text); color: var(--text); }
+
+.summary-bar { margin: 8px 24px; padding: 12px 18px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; display: flex; gap: 24px; flex-wrap: wrap; }
+.sum-item { display: flex; flex-direction: column; }
+.sum-label { font-family: 'Barlow Condensed', sans-serif; font-size: 0.65rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
+.sum-val { font-family: 'Barlow Condensed', sans-serif; font-size: 1.1rem; font-weight: 700; }
+
+.table-wrap { padding: 16px 24px; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+thead tr { border-bottom: 2px solid var(--border); }
+th { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); padding: 8px 10px; text-align: left; cursor: pointer; white-space: nowrap; user-select: none; }
+th:hover { color: var(--text); }
+th.sort-asc::after { content: ' ↑'; color: var(--accent); }
+th.sort-desc::after { content: ' ↓'; color: var(--accent); }
+tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+tbody tr:hover { background: var(--card); }
+tbody tr.sold { opacity: 0.55; }
+td { padding: 9px 10px; vertical-align: middle; }
+.card-name .player { font-weight: 600; }
+.card-name .set-year { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+.price-cell { font-family: 'Barlow Condensed', sans-serif; font-size: 0.95rem; font-weight: 600; }
+.price-cost { color: var(--red); }
+.price-ask { color: var(--accent); }
+.profit-pos { color: var(--green); font-weight: 700; }
+.profit-neg { color: var(--red); font-weight: 700; }
+.profit-zero { color: var(--muted); }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-family: 'Barlow Condensed', sans-serif; font-size: 0.72rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+.badge-type { background: var(--pill); color: var(--muted); }
+.badge-condition { background: #1a2a1a; color: #7ecf7e; }
+.badge-sold { background: #1a2a1a; color: var(--green); }
+.badge-available { background: #1a1a2a; color: #7e9ecf; }
+.actions-cell { display: flex; gap: 5px; flex-wrap: wrap; }
+.empty-state { text-align: center; padding: 60px 24px; color: var(--muted); }
+.empty-icon { font-size: 3rem; margin-bottom: 12px; }
+.empty-state h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 1.3rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; color: var(--text); }
+
+/* MODAL */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 200; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--card); border: 1px solid var(--border); border-top: 3px solid var(--accent); border-radius: 10px; padding: 26px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; }
+.modal h2 { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 1.3rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 18px; color: var(--accent); }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-group { display: flex; flex-direction: column; gap: 4px; }
+.form-group.full { grid-column: 1 / -1; }
+.form-group label { font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 0.72rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
+.form-group input, .form-group select, .form-group textarea { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 8px 11px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent); }
+.form-group textarea { resize: vertical; min-height: 55px; }
+.modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+
+/* BOXES */
+.boxes-wrap { padding: 20px 24px; }
+.boxes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 16px; }
+.box-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; position: relative; transition: border-color 0.15s; }
+.box-card:hover { border-color: var(--accent); }
+.box-card-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1.1rem; margin-bottom: 3px; padding-right: 80px; }
+.box-card-set { font-size: 0.8rem; color: var(--muted); margin-bottom: 10px; }
+.box-card-stats { display: flex; gap: 14px; flex-wrap: wrap; }
+.box-stat { display: flex; flex-direction: column; }
+.box-stat-label { font-size: 0.65rem; font-family: 'Barlow Condensed', sans-serif; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
+.box-stat-val { font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 700; }
+.box-actions { position: absolute; top: 12px; right: 12px; display: flex; gap: 5px; }
+
+/* TOAST */
+.toast { position: fixed; bottom: 24px; right: 24px; background: var(--green); color: #111; padding: 10px 20px; border-radius: 8px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.95rem; letter-spacing: 1px; z-index: 999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+.toast.show { opacity: 1; }
+.toast.error { background: var(--red); color: #fff; }
+
+.loading { text-align: center; padding: 40px; color: var(--muted); font-family: 'Barlow Condensed', sans-serif; font-size: 1.1rem; letter-spacing: 2px; text-transform: uppercase; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Shotime <span>Sports Cards</span></div>
+  <div class="header-stats">
+    <div class="hstat"><div class="hstat-val" id="hstat-total">—</div><div class="hstat-label">Cards</div></div>
+    <div class="hstat"><div class="hstat-val" id="hstat-invested">—</div><div class="hstat-label">Invested</div></div>
+    <div class="hstat"><div class="hstat-val green" id="hstat-profit">—</div><div class="hstat-label">Profit</div></div>
+  </div>
+</header>
+
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('cards')">🃏 Singles</button>
+  <button class="tab-btn" onclick="switchTab('boxes')">📦 Sealed Boxes</button>
+</div>
+
+<div class="grand-bar" id="grandBar"><div class="loading">Loading...</div></div>
+
+<!-- SINGLES TAB -->
+<div class="tab-pane active" id="tab-cards">
+  <div class="toolbar">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Search player, set, year, notes…" oninput="debounceSearch()">
+    </div>
+    <select class="filter-select" id="filterType" onchange="loadCards()">
+      <option value="">All Types</option>
+      <option value="Sports">Sports</option>
+      <option value="Pokemon">Pokemon</option>
+      <option value="MTG">MTG</option>
+      <option value="Other TCG">Other TCG</option>
+      <option value="Non-Sport">Non-Sport</option>
+    </select>
+    <select class="filter-select" id="filterStatus" onchange="loadCards()">
+      <option value="">All Status</option>
+      <option value="available">Available</option>
+      <option value="sold">Sold</option>
+    </select>
+    <button class="btn btn-primary" onclick="openCardModal()">+ Add Card</button>
+    <button class="btn btn-export" onclick="exportCSV()">⬇ CSV</button>
+  </div>
+  <div class="summary-bar" id="summaryBar"></div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th onclick="sortBy('name')">Card / Player</th>
+          <th onclick="sortBy('type')">Type</th>
+          <th onclick="sortBy('year')">Year</th>
+          <th onclick="sortBy('condition')">Condition</th>
+          <th onclick="sortBy('cost')">Take-In</th>
+          <th onclick="sortBy('ask')">Ask</th>
+          <th onclick="sortBy('margin')">Margin</th>
+          <th>Status</th>
+          <th>Notes</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"><tr><td colspan="10" class="loading">Loading inventory...</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- BOXES TAB -->
+<div class="tab-pane" id="tab-boxes">
+  <div class="boxes-wrap">
+    <div style="display:flex;gap:12px;margin-bottom:18px;align-items:center;flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="openBoxModal()">+ Add Box</button>
+      <span id="boxSummary" style="color:var(--muted);font-size:0.85rem;"></span>
+    </div>
+    <div class="boxes-grid" id="boxesGrid"><div class="loading">Loading boxes...</div></div>
+  </div>
+</div>
+
+<!-- CARD MODAL -->
+<div class="modal-overlay" id="cardModal">
+  <div class="modal">
+    <h2 id="cardModalTitle">Add Card</h2>
+    <div class="form-grid">
+      <div class="form-group full"><label>Player / Card Name *</label><input type="text" id="f-name" placeholder="e.g. Patrick Mahomes"></div>
+      <div class="form-group"><label>Set / Series</label><input type="text" id="f-set" placeholder="e.g. 2017 Panini Prizm"></div>
+      <div class="form-group"><label>Year</label><input type="number" id="f-year" placeholder="2024" min="1900" max="2099"></div>
+      <div class="form-group"><label>Type</label>
+        <select id="f-type">
+          <option value="Sports">Sports</option><option value="Pokemon">Pokemon</option>
+          <option value="MTG">MTG</option><option value="Other TCG">Other TCG</option><option value="Non-Sport">Non-Sport</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Condition</label>
+        <select id="f-condition">
+          <option value="Raw - NM">Raw - NM</option><option value="Raw - Mint">Raw - Mint</option>
+          <option value="Raw - EX">Raw - EX</option><option value="PSA 10">PSA 10</option>
+          <option value="PSA 9">PSA 9</option><option value="PSA 8">PSA 8</option>
+          <option value="BGS 9.5">BGS 9.5</option><option value="SGC 9.5">SGC 9.5</option>
+          <option value="SGC 9">SGC 9</option><option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Take-In Cost ($)</label><input type="number" id="f-cost" placeholder="0.00" min="0" step="0.01"></div>
+      <div class="form-group"><label>Ask Price ($)</label><input type="number" id="f-ask" placeholder="0.00" min="0" step="0.01"></div>
+      <div class="form-group"><label>Status</label>
+        <select id="f-status"><option value="available">Available</option><option value="sold">Sold</option></select>
+      </div>
+      <div class="form-group"><label>Sale Price ($)</label><input type="number" id="f-sale" placeholder="0.00" min="0" step="0.01"></div>
+      <div class="form-group full"><label>Notes</label><textarea id="f-notes" placeholder="e.g. RC, Auto, Serial #, condition notes…"></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeCardModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCard()">Save Card</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOX MODAL -->
+<div class="modal-overlay" id="boxModal">
+  <div class="modal">
+    <h2 id="boxModalTitle">Add Sealed Box</h2>
+    <div class="form-grid">
+      <div class="form-group full"><label>Box / Product Name *</label><input type="text" id="bf-name" placeholder="e.g. 2024 Panini Prizm Football Hobby"></div>
+      <div class="form-group"><label>Year</label><input type="number" id="bf-year" placeholder="2024"></div>
+      <div class="form-group"><label>Sport / Type</label>
+        <select id="bf-type">
+          <option value="NFL Football">NFL Football</option><option value="MLB Baseball">MLB Baseball</option>
+          <option value="NBA Basketball">NBA Basketball</option><option value="One Piece TCG">One Piece TCG</option>
+          <option value="Pokemon TCG">Pokemon TCG</option><option value="Other TCG">Other TCG</option><option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Quantity</label><input type="number" id="bf-qty" placeholder="1" min="1" value="1"></div>
+      <div class="form-group"><label>Cost Per Box ($)</label><input type="number" id="bf-cost" placeholder="0.00" min="0" step="0.01"></div>
+      <div class="form-group"><label>Selling Price Per Box ($)</label><input type="number" id="bf-value" placeholder="0.00" min="0" step="0.01"></div>
+      <div class="form-group full"><label>Notes</label><input type="text" id="bf-notes" placeholder="e.g. Hobby, Blaster, Mega, FOTL…"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeBoxModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveBox()">Save Box</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '';
+let cards = [], boxes = [];
+let editingCardId = null, editingBoxId = null;
+let sortCol = 'name', sortDir = 'asc';
+let searchTimer = null;
+
+// ── UTILS ──────────────────────────────────────────────────────
+function fmt(n) { return (n == null || isNaN(n)) ? '—' : '$' + Number(n).toFixed(2); }
+function esc(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function toast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show' + (type ? ' ' + type : '');
+  setTimeout(() => t.className = 'toast', 2500);
+}
+function debounceSearch() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(loadCards, 300);
+}
+
+// ── TABS ───────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', (i===0&&tab==='cards')||(i===1&&tab==='boxes')));
+  document.getElementById('tab-cards').classList.toggle('active', tab==='cards');
+  document.getElementById('tab-boxes').classList.toggle('active', tab==='boxes');
+  if (tab === 'boxes') loadBoxes();
+}
+
+// ── STATS ──────────────────────────────────────────────────────
+async function loadStats() {
+  try {
+    const res = await fetch(`${API}/api/stats`);
+    const s = await res.json();
+    document.getElementById('hstat-total').textContent = s.total_cards;
+    document.getElementById('hstat-invested').textContent = '$' + s.cards_invested.toFixed(2);
+    document.getElementById('hstat-profit').textContent = (s.sold_profit >= 0 ? '+$' : '-$') + Math.abs(s.sold_profit).toFixed(2);
+    document.getElementById('grandBar').innerHTML = `
+      <div class="grand-item"><span class="grand-label">🃏 Singles Invested</span><span class="grand-val" style="color:var(--red)">$${s.cards_invested.toFixed(2)}</span></div>
+      <div class="grand-item"><span class="grand-label">📦 Boxes Invested</span><span class="grand-val" style="color:var(--red)">$${s.boxes_invested.toFixed(2)}</span></div>
+      <div class="grand-item"><span class="grand-label">🏆 Grand Total</span><span class="grand-val" style="color:var(--accent)">$${s.grand_total_invested.toFixed(2)}</span></div>
+      ${s.est_total_value > 0 ? `<div class="grand-item"><span class="grand-label">📈 Est. Value</span><span class="grand-val" style="color:var(--green)">$${s.est_total_value.toFixed(2)}</span></div>` : ''}
+      <div class="grand-item"><span class="grand-label">✅ Realized Profit</span><span class="grand-val" style="color:var(--green)">+$${s.sold_profit.toFixed(2)}</span></div>
+    `;
+  } catch(e) { console.error(e); }
+}
+
+// ── CARDS ──────────────────────────────────────────────────────
+async function loadCards() {
+  const search = document.getElementById('searchInput').value;
+  const type = document.getElementById('filterType').value;
+  const status = document.getElementById('filterStatus').value;
+  const params = new URLSearchParams();
+  if (search) params.set('search', search);
+  if (type) params.set('type', type);
+  if (status) params.set('status', status);
+
+  try {
+    const res = await fetch(`${API}/api/cards?${params}`);
+    cards = await res.json();
+    renderCards();
+    loadStats();
+  } catch(e) {
+    document.getElementById('tableBody').innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--red);padding:30px;">⚠️ Could not connect to server</td></tr>';
+  }
+}
+
+function sortBy(col) {
+  if (sortCol === col) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+  else { sortCol = col; sortDir = 'asc'; }
+  renderCards();
+}
+
+function renderCards() {
+  const sorted = [...cards].sort((a,b) => {
+    let va, vb;
+    if (sortCol === 'margin') { va = (a.ask||0)-(a.cost||0); vb = (b.ask||0)-(b.cost||0); }
+    else if (['cost','ask','year'].includes(sortCol)) { va = parseFloat(a[sortCol])||0; vb = parseFloat(b[sortCol])||0; }
+    else { va = (a[sortCol]||'').toString().toLowerCase(); vb = (b[sortCol]||'').toString().toLowerCase(); }
+    return sortDir === 'asc' ? (va < vb ? -1 : va > vb ? 1 : 0) : (va > vb ? -1 : va < vb ? 1 : 0);
+  });
+
+  document.querySelectorAll('th').forEach(th => th.classList.remove('sort-asc','sort-desc'));
+
+  const tbody = document.getElementById('tableBody');
+  if (sorted.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:40px;">No cards found</td></tr>';
+  } else {
+    tbody.innerHTML = sorted.map(c => {
+      const margin = c.status === 'sold' ? (c.sale||0)-(c.cost||0) : (c.ask||0)-(c.cost||0);
+      const hasMargin = c.status === 'sold' ? c.sale != null : c.ask != null;
+      const marginStr = !hasMargin ? '—' : (margin >= 0 ? '+' : '') + '$' + margin.toFixed(2);
+      const marginClass = !hasMargin ? 'profit-zero' : margin > 0 ? 'profit-pos' : margin < 0 ? 'profit-neg' : 'profit-zero';
+      const askDisplay = c.status === 'sold'
+        ? `${fmt(c.sale)} <span style="color:var(--muted);font-size:0.7rem">(sold)</span>`
+        : fmt(c.ask);
+      return `<tr class="${c.status==='sold'?'sold':''}">
+        <td class="card-name"><div class="player">${esc(c.name)}</div><div class="set-year">${[c.set_name,c.year].filter(Boolean).join(' · ')}</div></td>
+        <td><span class="badge badge-type">${esc(c.type)}</span></td>
+        <td>${c.year||'—'}</td>
+        <td><span class="badge badge-condition">${esc(c.condition)}</span></td>
+        <td class="price-cell price-cost">${fmt(c.cost)}</td>
+        <td class="price-cell price-ask">${askDisplay}</td>
+        <td class="price-cell ${marginClass}">${marginStr}</td>
+        <td><span class="badge ${c.status==='sold'?'badge-sold':'badge-available'}">${c.status}</span></td>
+        <td style="color:var(--muted);font-size:0.8rem;max-width:150px;white-space:normal">${esc(c.notes)||''}</td>
+        <td class="actions-cell">
+          <button class="btn btn-sm btn-edit" onclick="openCardModal(${c.id})">Edit</button>
+          ${c.status!=='sold'?`<button class="btn btn-sm btn-sold" onclick="sellCard(${c.id})">Sold</button>`:''}
+          <button class="btn btn-sm btn-ebay" onclick="openEbay(${c.id})">eBay</button>
+          <button class="btn btn-sm btn-cl" onclick="openCL(${c.id})">CL</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteCard(${c.id})">Del</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Summary bar
+  const vis = sorted;
+  const invested = vis.reduce((s,c) => s+(c.cost||0),0);
+  const askVal = vis.filter(c=>c.status!=='sold').reduce((s,c)=>s+(c.ask||0),0);
+  const soldCount = vis.filter(c=>c.status==='sold').length;
+  document.getElementById('summaryBar').innerHTML = `
+    <div class="sum-item"><span class="sum-label">Showing</span><span class="sum-val">${vis.length}</span></div>
+    <div class="sum-item"><span class="sum-label">Invested</span><span class="sum-val" style="color:var(--red)">$${invested.toFixed(2)}</span></div>
+    <div class="sum-item"><span class="sum-label">Ask Value</span><span class="sum-val" style="color:var(--accent)">$${askVal.toFixed(2)}</span></div>
+    <div class="sum-item"><span class="sum-label">Available</span><span class="sum-val">${vis.length-soldCount}</span></div>
+    <div class="sum-item"><span class="sum-label">Sold</span><span class="sum-val" style="color:var(--green)">${soldCount}</span></div>
+  `;
+}
+
+function openCardModal(id=null) {
+  editingCardId = id;
+  document.getElementById('cardModalTitle').textContent = id ? 'Edit Card' : 'Add Card';
+  if (id) {
+    const c = cards.find(x=>x.id===id);
+    if (!c) return;
+    document.getElementById('f-name').value = c.name||'';
+    document.getElementById('f-set').value = c.set_name||'';
+    document.getElementById('f-year').value = c.year||'';
+    document.getElementById('f-type').value = c.type||'Sports';
+    document.getElementById('f-condition').value = c.condition||'Raw - NM';
+    document.getElementById('f-cost').value = c.cost||'';
+    document.getElementById('f-ask').value = c.ask||'';
+    document.getElementById('f-status').value = c.status||'available';
+    document.getElementById('f-sale').value = c.sale||'';
+    document.getElementById('f-notes').value = c.notes||'';
+  } else {
+    ['f-name','f-set','f-year','f-cost','f-ask','f-sale','f-notes'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('f-type').value='Sports';
+    document.getElementById('f-condition').value='Raw - NM';
+    document.getElementById('f-status').value='available';
+  }
+  document.getElementById('cardModal').classList.add('open');
+  document.getElementById('f-name').focus();
+}
+function closeCardModal() { document.getElementById('cardModal').classList.remove('open'); editingCardId=null; }
+
+async function saveCard() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { toast('Name is required', 'error'); return; }
+  const body = {
+    name, set_name: document.getElementById('f-set').value.trim(),
+    year: document.getElementById('f-year').value||null,
+    type: document.getElementById('f-type').value,
+    condition: document.getElementById('f-condition').value,
+    cost: document.getElementById('f-cost').value ? parseFloat(document.getElementById('f-cost').value) : null,
+    ask: document.getElementById('f-ask').value ? parseFloat(document.getElementById('f-ask').value) : null,
+    status: document.getElementById('f-status').value,
+    sale: document.getElementById('f-sale').value ? parseFloat(document.getElementById('f-sale').value) : null,
+    notes: document.getElementById('f-notes').value.trim(),
+  };
+  try {
+    const url = editingCardId ? `${API}/api/cards/${editingCardId}` : `${API}/api/cards`;
+    const method = editingCardId ? 'PUT' : 'POST';
+    await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    closeCardModal(); loadCards(); toast(editingCardId ? 'Card updated!' : 'Card added!');
+  } catch(e) { toast('Error saving card', 'error'); }
+}
+
+async function deleteCard(id) {
+  if (!confirm('Delete this card?')) return;
+  await fetch(`${API}/api/cards/${id}`, { method: 'DELETE' });
+  loadCards(); toast('Card deleted');
+}
+
+async function sellCard(id) {
+  const c = cards.find(x=>x.id===id);
+  const price = prompt(`Sale price for "${c.name}":`, c.ask||'');
+  if (price===null) return;
+  await fetch(`${API}/api/cards/${id}/sell`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({sale_price: parseFloat(price)}) });
+  loadCards(); toast('Marked as sold! 💰');
+}
+
+async function openEbay(id) {
+  const res = await fetch(`${API}/api/comp/ebay/${id}`);
+  const data = await res.json();
+  window.open(data.url, '_blank');
+}
+
+async function openCL(id) {
+  const res = await fetch(`${API}/api/comp/cardladder/${id}`);
+  const data = await res.json();
+  window.open(data.url, '_blank');
+}
+
+function exportCSV() { window.open(`${API}/api/export/csv`, '_blank'); }
+
+// ── BOXES ──────────────────────────────────────────────────────
+async function loadBoxes() {
+  const res = await fetch(`${API}/api/boxes`);
+  boxes = await res.json();
+  renderBoxes();
+}
+
+function renderBoxes() {
+  const grid = document.getElementById('boxesGrid');
+  if (boxes.length === 0) {
+    grid.innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div><h3>No Boxes Yet</h3><p>Click "+ Add Box" to log sealed inventory.</p></div>';
+    document.getElementById('boxSummary').textContent = '';
+    return;
+  }
+  const totalQty = boxes.reduce((s,b)=>s+(b.qty||1),0);
+  const totalCost = boxes.reduce((s,b)=>s+(b.cost||0)*(b.qty||1),0);
+  document.getElementById('boxSummary').textContent = `${totalQty} boxes · $${totalCost.toFixed(2)} invested`;
+  grid.innerHTML = boxes.map(b => {
+    const tc = (b.cost||0)*(b.qty||1);
+    const tv = b.value ? (b.value||0)*(b.qty||1) : null;
+    const margin = tv !== null ? tv - tc : null;
+    return `<div class="box-card">
+      <div class="box-actions">
+        <button class="btn btn-sm btn-edit" onclick="openBoxModal(${b.id})">Edit</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteBox(${b.id})">Del</button>
+      </div>
+      <div class="box-card-name">${esc(b.name)}</div>
+      <div class="box-card-set">${[b.year,b.type,b.notes].filter(Boolean).join(' · ')}</div>
+      <div class="box-card-stats">
+        <div class="box-stat"><span class="box-stat-label">Qty</span><span class="box-stat-val">${b.qty||1}</span></div>
+        <div class="box-stat"><span class="box-stat-label">Cost/Box</span><span class="box-stat-val" style="color:var(--red)">${fmt(b.cost)}</span></div>
+        <div class="box-stat"><span class="box-stat-label">Total Cost</span><span class="box-stat-val" style="color:var(--red)">$${tc.toFixed(2)}</span></div>
+        ${tv!==null?`<div class="box-stat"><span class="box-stat-label">Sell Value</span><span class="box-stat-val" style="color:var(--accent)">$${tv.toFixed(2)}</span></div>`:''}
+        ${margin!==null?`<div class="box-stat"><span class="box-stat-label">Margin</span><span class="box-stat-val" style="color:${margin>=0?'var(--green)':'var(--red)'}">${margin>=0?'+':'-'}$${Math.abs(margin).toFixed(2)}</span></div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openBoxModal(id=null) {
+  editingBoxId = id;
+  document.getElementById('boxModalTitle').textContent = id ? 'Edit Box' : 'Add Sealed Box';
+  if (id) {
+    const b = boxes.find(x=>x.id===id);
+    if (!b) return;
+    document.getElementById('bf-name').value=b.name||'';
+    document.getElementById('bf-year').value=b.year||'';
+    document.getElementById('bf-type').value=b.type||'NFL Football';
+    document.getElementById('bf-qty').value=b.qty||1;
+    document.getElementById('bf-cost').value=b.cost||'';
+    document.getElementById('bf-value').value=b.value||'';
+    document.getElementById('bf-notes').value=b.notes||'';
+  } else {
+    ['bf-name','bf-year','bf-cost','bf-value','bf-notes'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('bf-qty').value=1;
+    document.getElementById('bf-type').value='NFL Football';
+  }
+  document.getElementById('boxModal').classList.add('open');
+  document.getElementById('bf-name').focus();
+}
+function closeBoxModal() { document.getElementById('boxModal').classList.remove('open'); editingBoxId=null; }
+
+async function saveBox() {
+  const name = document.getElementById('bf-name').value.trim();
+  if (!name) { toast('Name is required','error'); return; }
+  const body = {
+    name, year: document.getElementById('bf-year').value||null,
+    type: document.getElementById('bf-type').value,
+    qty: parseInt(document.getElementById('bf-qty').value)||1,
+    cost: document.getElementById('bf-cost').value ? parseFloat(document.getElementById('bf-cost').value) : null,
+    value: document.getElementById('bf-value').value ? parseFloat(document.getElementById('bf-value').value) : null,
+    notes: document.getElementById('bf-notes').value.trim(),
+  };
+  const url = editingBoxId ? `${API}/api/boxes/${editingBoxId}` : `${API}/api/boxes`;
+  const method = editingBoxId ? 'PUT' : 'POST';
+  await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  closeBoxModal(); loadBoxes(); loadStats(); toast(editingBoxId ? 'Box updated!' : 'Box added!');
+}
+
+async function deleteBox(id) {
+  if (!confirm('Delete this box entry?')) return;
+  await fetch(`${API}/api/boxes/${id}`, { method:'DELETE' });
+  loadBoxes(); loadStats(); toast('Box deleted');
+}
+
+// Close on overlay click / ESC
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target===el) { closeCardModal(); closeBoxModal(); } });
+});
+document.addEventListener('keydown', e => { if (e.key==='Escape') { closeCardModal(); closeBoxModal(); } });
+
+// Init
+loadCards();
+loadStats();
+</script>
+</body>
+</html>
