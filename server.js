@@ -115,7 +115,7 @@ app.get('/api/comp/cardladder/:id', (req, res) => {
   const card = db.get('cards').find({ id: parseInt(req.params.id) }).value();
   if (!card) return res.status(404).json({ error: 'Not found' });
   const q = [card.name, card.set_name, card.year].filter(Boolean).join(' ');
-  res.json({ url: `https://www.cardladder.com/search?q=${encodeURIComponent(q)}` });
+  res.json({ url: `https://www.cardladder.com/cards/search?q=${encodeURIComponent(q)}` });
 });
 
 // ── CSV EXPORT ─────────────────────────────────────────────────
