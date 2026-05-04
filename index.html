@@ -1,0 +1,1820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shotime Inventory</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e12;
+    --surface: #16161d;
+    --card: #1d1d27;
+    --border: #2a2a3a;
+    --accent: #f5c518;
+    --accent2: #e05c2a;
+    --green: #2ecc71;
+    --red: #e74c3c;
+    --text: #f0f0f0;
+    --muted: #7a7a90;
+    --pill: #252535;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--surface);
+    border-bottom: 3px solid var(--accent);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 1.6rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .logo span { color: var(--accent); }
+  .header-stats {
+    display: flex;
+    gap: 24px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .hstat { text-align: center; }
+  .hstat-val { font-size: 1.3rem; color: var(--accent); }
+  .hstat-val.green { color: var(--green); }
+  .hstat-label { color: var(--muted); font-size: 0.7rem; }
+
+  /* TOOLBAR */
+  .toolbar {
+    padding: 16px 24px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+  }
+  .search-wrap input {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px 8px 36px;
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-wrap input:focus { border-color: var(--accent); }
+  .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 1rem;
+  }
+  .filter-select {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    cursor: pointer;
+  }
+  .btn {
+    padding: 8px 18px;
+    border-radius: 6px;
+    border: none;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #111;
+  }
+  .btn-primary:hover { background: #e0b010; }
+  .btn-danger {
+    background: transparent;
+    color: var(--red);
+    border: 1px solid var(--red);
+    padding: 5px 10px;
+    font-size: 0.8rem;
+  }
+  .btn-danger:hover { background: var(--red); color: #fff; }
+  .btn-sold {
+    background: transparent;
+    color: var(--green);
+    border: 1px solid var(--green);
+    padding: 5px 10px;
+    font-size: 0.8rem;
+  }
+  .btn-sold:hover { background: var(--green); color: #fff; }
+  .btn-edit {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 5px 10px;
+    font-size: 0.8rem;
+  }
+  .btn-edit:hover { color: var(--text); border-color: var(--text); }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--accent);
+    border-radius: 10px;
+    padding: 28px;
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal h2 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900;
+    font-size: 1.4rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    color: var(--accent);
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-group label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    font-size: 0.75rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .form-group input, .form-group select, .form-group textarea {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus { border-color: var(--accent); }
+  .form-group textarea { resize: vertical; min-height: 60px; }
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 22px;
+    justify-content: flex-end;
+  }
+  .btn-cancel {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .btn-cancel:hover { border-color: var(--text); color: var(--text); }
+
+  /* TABLE */
+  .table-wrap {
+    padding: 20px 24px;
+    overflow-x: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+  thead tr {
+    border-bottom: 2px solid var(--border);
+  }
+  th {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 10px 12px;
+    text-align: left;
+    cursor: pointer;
+    white-space: nowrap;
+    user-select: none;
+  }
+  th:hover { color: var(--text); }
+  th.sort-asc::after { content: ' ↑'; color: var(--accent); }
+  th.sort-desc::after { content: ' ↓'; color: var(--accent); }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+  tbody tr:hover { background: var(--card); }
+  tbody tr.sold { opacity: 0.55; }
+  td {
+    padding: 11px 12px;
+    vertical-align: middle;
+  }
+  .card-name {
+    font-weight: 600;
+    max-width: 220px;
+  }
+  .card-name .player { font-size: 1rem; }
+  .card-name .set-year {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .price-cell { font-family: 'Barlow Condensed', sans-serif; font-size: 1rem; font-weight: 600; }
+  .price-cost { color: var(--red); }
+  .price-ask { color: var(--accent); }
+  .profit-cell {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+  .profit-pos { color: var(--green); }
+  .profit-neg { color: var(--red); }
+  .profit-zero { color: var(--muted); }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 20px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .badge-type { background: var(--pill); color: var(--muted); }
+  .badge-condition { background: #1a2a1a; color: #7ecf7e; }
+  .badge-sold { background: #1a2a1a; color: var(--green); }
+  .badge-available { background: #1a1a2a; color: #7e9ecf; }
+
+  .actions-cell { display: flex; gap: 6px; flex-wrap: wrap; }
+  .btn-ebay { background: transparent; color: #e53238; border: 1px solid #e53238; padding: 5px 10px; font-size: 0.8rem; }
+  .btn-ebay:hover { background: #e53238; color: #fff; }
+  .btn-cl { background: transparent; color: #4a9eff; border: 1px solid #4a9eff; padding: 5px 10px; font-size: 0.8rem; }
+  .btn-cl:hover { background: #4a9eff; color: #fff; }
+
+  /* EMPTY */
+  .empty-state {
+    text-align: center;
+    padding: 60px 24px;
+    color: var(--muted);
+  }
+  .empty-icon { font-size: 3rem; margin-bottom: 12px; }
+  .empty-state h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  /* SUMMARY BAR */
+  .summary-bar {
+    margin: 0 24px 8px;
+    padding: 14px 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .sum-item { display: flex; flex-direction: column; }
+  .sum-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .sum-val {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+  }
+
+  /* CONFIRM MODAL */
+  .confirm-modal {
+    max-width: 360px;
+    text-align: center;
+  }
+  .confirm-modal h2 { font-size: 1.1rem; margin-bottom: 10px; }
+  .confirm-modal p { color: var(--muted); margin-bottom: 20px; font-size: 0.9rem; }
+
+  /* TABS */
+  .tab-nav {
+    display: flex;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+  }
+  .tab-btn {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 12px 24px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -1px;
+    transition: all 0.15s;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+
+  /* BOXES TAB */
+  .boxes-wrap { padding: 20px 24px; }
+  .boxes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .box-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    position: relative;
+    transition: border-color 0.15s;
+  }
+  .box-card:hover { border-color: var(--accent); }
+  .box-card-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 4px;
+  }
+  .box-card-set { font-size: 0.8rem; color: var(--muted); margin-bottom: 12px; }
+  .box-card-stats { display: flex; gap: 16px; flex-wrap: wrap; }
+  .box-stat { display: flex; flex-direction: column; }
+  .box-stat-label { font-size: 0.65rem; font-family: 'Barlow Condensed', sans-serif; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
+  .box-stat-val { font-family: 'Barlow Condensed', sans-serif; font-size: 1.1rem; font-weight: 700; }
+  .box-actions { position: absolute; top: 12px; right: 12px; display: flex; gap: 6px; }
+
+  /* GRAND TOTAL BAR */
+  .grand-total-bar {
+    margin: 0 24px 8px;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #1a1a2e, #1d1d27);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .grand-item { display: flex; flex-direction: column; }
+  .grand-label { font-family: 'Barlow Condensed', sans-serif; font-size: 0.65rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+  .grand-val { font-family: 'Barlow Condensed', sans-serif; font-size: 1.4rem; font-weight: 900; }
+
+  @media (max-width: 600px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .header-stats { gap: 12px; }
+    .hstat-val { font-size: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo" id="headerLogo">Current <span>Inventory</span></div>
+  <div class="header-stats">
+    <div class="hstat">
+      <div class="hstat-val" id="hstat-total">0</div>
+      <div class="hstat-label">Total Cards</div>
+    </div>
+    <div class="hstat">
+      <div class="hstat-val" id="hstat-invested">$0</div>
+      <div class="hstat-label">Invested</div>
+    </div>
+    <div class="hstat">
+      <div class="hstat-val green" id="hstat-profit">$0</div>
+      <div class="hstat-label">Profit (Sold)</div>
+    </div>
+  </div>
+</header>
+
+<!-- TAB NAV -->
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('cards')">🃏 Singles</button>
+  <button class="tab-btn" onclick="switchTab('boxes')">📦 Sealed Boxes</button>
+  <button class="tab-btn" onclick="switchTab('breaks')">🎬 Breaks</button>
+  <button class="tab-btn" onclick="switchTab('hwy15')">🤝 Hwy 15 Trading Co.</button>
+</div>
+
+<!-- GRAND TOTAL BAR -->
+<div class="grand-total-bar" id="grandTotalBar"></div>
+
+<!-- SINGLES TAB -->
+<div class="tab-pane active" id="tab-cards">
+  <div class="toolbar">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="Search player, set, year, notes…" oninput="renderTable()">
+    </div>
+    <select class="filter-select" id="filterType" onchange="renderTable()">
+      <option value="">All Types</option>
+      <option value="Sports">Sports</option>
+      <option value="Pokemon">Pokemon</option>
+      <option value="MTG">MTG</option>
+      <option value="Other TCG">Other TCG</option>
+      <option value="Non-Sport">Non-Sport</option>
+    </select>
+    <select class="filter-select" id="filterStatus" onchange="renderTable()">
+      <option value="">All Status</option>
+      <option value="available">Available</option>
+      <option value="sold">Sold</option>
+    </select>
+    <button class="btn btn-primary" onclick="openAddModal()">+ Add Card</button>
+  </div>
+  <div class="summary-bar" id="summaryBar"></div>
+  <div class="table-wrap">
+    <table id="inventoryTable">
+      <thead>
+        <tr>
+          <th onclick="sortBy('name')">Card / Player</th>
+          <th onclick="sortBy('type')">Type</th>
+          <th onclick="sortBy('year')">Year</th>
+          <th onclick="sortBy('condition')">Condition</th>
+          <th onclick="sortBy('cost')">Take-In $</th>
+          <th onclick="sortBy('ask')">Ask $</th>
+          <th onclick="sortBy('profit')">Margin</th>
+          <th>Status</th>
+          <th>Notes</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+    <div id="emptyState" class="empty-state" style="display:none">
+      <div class="empty-icon">🃏</div>
+      <h3>No Cards Yet</h3>
+      <p>Click "+ Add Card" to start building your inventory.</p>
+    </div>
+  </div>
+</div>
+
+<!-- BOXES TAB -->
+<div class="tab-pane" id="tab-boxes">
+  <div class="boxes-wrap">
+    <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
+      <button class="tab-btn active" id="box-sub-inv" onclick="switchBoxTab('inventory')" style="padding:8px 18px;font-size:0.8rem;">📦 Inventory</button>
+      <button class="tab-btn" id="box-sub-sales" onclick="switchBoxTab('sales')" style="padding:8px 18px;font-size:0.8rem;">💰 Sales</button>
+      <button class="btn btn-primary" onclick="openBoxModal()" style="margin-left:auto;">+ Add Box</button>
+    </div>
+    <span style="color:var(--muted);font-size:0.85rem;display:block;margin-bottom:16px;" id="boxSummaryText"></span>
+
+    <!-- INVENTORY SUB-TAB -->
+    <div id="box-tab-inventory">
+      <div class="boxes-grid" id="boxesGrid"></div>
+      <div id="boxEmptyState" class="empty-state" style="display:none">
+        <div class="empty-icon">📦</div>
+        <h3>No Boxes Yet</h3>
+        <p>Click "+ Add Box" to log your sealed inventory.</p>
+      </div>
+    </div>
+
+    <!-- SALES SUB-TAB -->
+    <div id="box-tab-sales" style="display:none;">
+      <table style="width:100%;border-collapse:collapse;font-size:0.9rem;">
+        <thead>
+          <tr style="border-bottom:2px solid var(--border);">
+            <th style="font-family:'Barlow Condensed',sans-serif;font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:10px 12px;text-align:left;">Box</th>
+            <th style="font-family:'Barlow Condensed',sans-serif;font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:10px 12px;text-align:left;">Type</th>
+            <th style="font-family:'Barlow Condensed',sans-serif;font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:10px 12px;text-align:left;">Qty Sold</th>
+            <th style="font-family:'Barlow Condensed',sans-serif;font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:10px 12px;text-align:left;">Sale Price</th>
+            <th style="font-family:'Barlow Condensed',sans-serif;font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:10px 12px;text-align:left;">Cost</th>
+            <th style="font-family:'Barlow Condensed',sans-serif;font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:10px 12px;text-align:left;">Revenue</th>
+            <th style="font-family:'Barlow Condensed',sans-serif;font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:10px 12px;text-align:left;">Profit</th>
+            <th style="font-family:'Barlow Condensed',sans-serif;font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:10px 12px;text-align:left;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="boxSalesBody"></tbody>
+      </table>
+      <div style="margin-top:16px;">
+        <button class="btn btn-primary" onclick="openBoxSaleModal()">+ Log Box Sale</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD / EDIT MODAL -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <h2 id="modalTitle">Add Card</h2>
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Player / Card Name *</label>
+        <input type="text" id="f-name" placeholder="e.g. Mike Trout, Charizard, Black Lotus">
+      </div>
+      <div class="form-group">
+        <label>Set / Series</label>
+        <input type="text" id="f-set" placeholder="e.g. 2011 Topps Update">
+      </div>
+      <div class="form-group">
+        <label>Year</label>
+        <input type="number" id="f-year" placeholder="e.g. 1989" min="1900" max="2099">
+      </div>
+      <div class="form-group">
+        <label>Card Type</label>
+        <select id="f-type">
+          <option value="Sports">Sports</option>
+          <option value="Pokemon">Pokemon</option>
+          <option value="MTG">MTG</option>
+          <option value="Other TCG">Other TCG</option>
+          <option value="Non-Sport">Non-Sport</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Condition / Grade</label>
+        <select id="f-condition">
+          <option value="Raw - Mint">Raw - Mint</option>
+          <option value="Raw - NM">Raw - NM</option>
+          <option value="Raw - EX">Raw - EX</option>
+          <option value="Raw - VG">Raw - VG</option>
+          <option value="Raw - Poor">Raw - Poor</option>
+          <option value="PSA 10">PSA 10</option>
+          <option value="PSA 9">PSA 9</option>
+          <option value="PSA 8">PSA 8</option>
+          <option value="PSA 7">PSA 7</option>
+          <option value="BGS 9.5">BGS 9.5</option>
+          <option value="BGS 9">BGS 9</option>
+          <option value="SGC 10">SGC 10</option>
+          <option value="SGC 9">SGC 9</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Take-In / Cost ($) *</label>
+        <input type="number" id="f-cost" placeholder="0.00" min="0" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>Asking Price ($)</label>
+        <input type="number" id="f-ask" placeholder="0.00" min="0" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="f-status">
+          <option value="available">Available</option>
+          <option value="sold">Sold</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Sale Price ($) <span style="color:var(--muted);font-size:0.7rem">(if sold)</span></label>
+        <input type="number" id="f-sale" placeholder="0.00" min="0" step="0.01">
+      </div>
+      <div class="form-group full">
+        <label>Notes</label>
+        <textarea id="f-notes" placeholder="e.g. RC, Rookie, Serial #, MISPRINT, bought from Joe..."></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCard()">Save Card</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOX MODAL -->
+<div class="modal-overlay" id="boxModal">
+  <div class="modal">
+    <h2 id="boxModalTitle">Add Sealed Box</h2>
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Box Name / Product *</label>
+        <input type="text" id="bf-name" placeholder="e.g. 2024 Panini Prizm Football Hobby">
+      </div>
+      <div class="form-group">
+        <label>Year</label>
+        <input type="number" id="bf-year" placeholder="2024" min="1980" max="2099">
+      </div>
+      <div class="form-group">
+        <label>Sport / Type</label>
+        <select id="bf-type">
+          <option value="NFL Football">NFL Football</option>
+          <option value="MLB Baseball">MLB Baseball</option>
+          <option value="NBA Basketball">NBA Basketball</option>
+          <option value="One Piece TCG">One Piece TCG</option>
+          <option value="Pokemon TCG">Pokemon TCG</option>
+          <option value="Other TCG">Other TCG</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Quantity</label>
+        <input type="number" id="bf-qty" placeholder="1" min="1" value="1">
+      </div>
+      <div class="form-group">
+        <label>Cost Per Box ($) *</label>
+        <input type="number" id="bf-cost" placeholder="0.00" min="0" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>Est. Value Per Box ($)</label>
+        <input type="number" id="bf-value" placeholder="0.00" min="0" step="0.01">
+      </div>
+      <div class="form-group full">
+        <label>Notes</label>
+        <input type="text" id="bf-notes" placeholder="e.g. Hobby box, FOTL, Blaster…">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeBoxModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveBox()">Save Box</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOX SALE MODAL -->
+<div class="modal-overlay" id="boxSaleModal">
+  <div class="modal">
+    <h2 id="boxSaleModalTitle">Log Box Sale</h2>
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Box *</label>
+        <select id="bs-box"></select>
+      </div>
+      <div class="form-group">
+        <label>Qty Sold *</label>
+        <input type="number" id="bs-qty" placeholder="1" min="1" value="1">
+      </div>
+      <div class="form-group">
+        <label>Sale Price Each ($) *</label>
+        <input type="number" id="bs-price" placeholder="0.00" min="0" step="0.01">
+      </div>
+      <div class="form-group full">
+        <label>Notes</label>
+        <input type="text" id="bs-notes" placeholder="e.g. Card show, Whatnot, eBay...">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeBoxSaleModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveBoxSale()">Save Sale</button>
+    </div>
+  </div>
+</div>
+
+<!-- BREAKS TAB -->
+<div class="tab-pane" id="tab-breaks">
+  <div class="toolbar">
+    <button class="btn btn-primary" onclick="openBreakModal()">+ Log Break</button>
+    <span style="color:var(--muted);font-size:0.85rem;margin-left:12px;" id="breakSummaryText"></span>
+  </div>
+  <div class="grand-total-bar" id="breaksGrandBar" style="margin-top:8px;"></div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Break Name</th>
+          <th>Boxes Used</th>
+          <th>Product Cost</th>
+          <th>Gross Sales</th>
+          <th>Commission (10.9%)</th>
+          <th>Expenses</th>
+          <th>Promo Cost</th>
+          <th>Net Profit</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="breaksTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- BREAK MODAL -->
+<div class="modal-overlay" id="breakModal">
+  <div class="modal" style="max-width:620px;">
+    <h2 id="breakModalTitle">Log Whatnot Break</h2>
+    <div class="form-grid">
+      <div class="form-group full"><label>Break Name *</label><input type="text" id="brk-name" placeholder="e.g. Sunday NFL Break"></div>
+      <div class="form-group"><label>Date</label><input type="date" id="brk-date"></div>
+      <div class="form-group"><label>Gross Sales ($) *</label><input type="number" id="brk-sales" placeholder="0.00" min="0" step="0.01" oninput="updateBreakCalc()"></div>
+      <div class="form-group"><label>Whatnot Commission (10.9%)</label><input type="text" id="brk-commission" readonly style="color:var(--red);background:var(--bg);"></div>
+      <div class="form-group"><label>Net After Commission</label><input type="text" id="brk-net-commission" readonly style="color:var(--green);background:var(--bg);"></div>
+      <div class="form-group"><label>Expenses ($)</label><input type="number" id="brk-expenses" placeholder="0.00" min="0" step="0.01" oninput="updateBreakCalc()"></div>
+      <div class="form-group"><label>Promotional Costs ($)</label><input type="number" id="brk-promo" placeholder="0.00" min="0" step="0.01" oninput="updateBreakCalc()"></div>
+      <div class="form-group full">
+        <label>Net Profit (after all costs)</label>
+        <input type="text" id="brk-net-profit" readonly style="font-size:1.1rem;font-weight:700;background:var(--bg);">
+      </div>
+      <div class="form-group full">
+        <label>Boxes Used (enter qty per box) <button type="button" onclick="refreshBreakBoxes()" style="margin-left:10px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:4px;padding:2px 8px;font-size:0.7rem;cursor:pointer;">↻ Refresh</button></label>
+        <div id="brk-boxes-list" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px;max-height:220px;overflow-y:auto;"></div>
+        <div style="font-size:0.78rem;color:var(--muted);margin-top:6px;">Product cost auto-calculated from box costs above</div>
+      </div>
+      <div class="form-group full"><label>Notes</label><textarea id="brk-notes" placeholder="Any additional notes..."></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeBreakModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveBreak()">Save Break</button>
+    </div>
+  </div>
+</div>
+
+<!-- HWY 15 TRADING CO. TAB -->
+<div class="tab-pane" id="tab-hwy15">
+  <div class="toolbar">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="hwy15SearchInput" placeholder="Search player, set, year, notes…" oninput="renderHwy15Table()">
+    </div>
+    <select class="filter-select" id="hwy15FilterType" onchange="renderHwy15Table()">
+      <option value="">All Types</option>
+      <option value="Sports">Sports</option>
+      <option value="Pokemon">Pokemon</option>
+      <option value="MTG">MTG</option>
+      <option value="Other TCG">Other TCG</option>
+      <option value="Non-Sport">Non-Sport</option>
+    </select>
+    <select class="filter-select" id="hwy15FilterStatus" onchange="renderHwy15Table()">
+      <option value="">All Status</option>
+      <option value="available">Available</option>
+      <option value="sold">Sold</option>
+    </select>
+    <button class="btn btn-primary" onclick="openHwy15Modal()">+ Add Card</button>
+  </div>
+  <div class="summary-bar" id="hwy15SummaryBar"></div>
+  <div class="grand-total-bar" id="hwy15GrandBar"></div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th onclick="hwy15SortBy('name')">Card / Player</th>
+          <th onclick="hwy15SortBy('type')">Type</th>
+          <th onclick="hwy15SortBy('year')">Year</th>
+          <th onclick="hwy15SortBy('condition')">Condition</th>
+          <th onclick="hwy15SortBy('cost')">Take-In $</th>
+          <th onclick="hwy15SortBy('ask')">Ask $</th>
+          <th onclick="hwy15SortBy('profit')">Margin</th>
+          <th>Status</th>
+          <th>Notes</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="hwy15TableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- HWY 15 CARD MODAL -->
+<div class="modal-overlay" id="hwy15Modal">
+  <div class="modal">
+    <h2 id="hwy15ModalTitle">Hwy 15 Trading Co. — Add Card</h2>
+    <div class="form-grid">
+      <div class="form-group full"><label>Player / Card Name *</label><input type="text" id="h15-name" placeholder="e.g. Patrick Mahomes"></div>
+      <div class="form-group"><label>Set / Series</label><input type="text" id="h15-set" placeholder="e.g. 2017 Panini Prizm"></div>
+      <div class="form-group"><label>Year</label><input type="number" id="h15-year" placeholder="2024" min="1900" max="2099"></div>
+      <div class="form-group"><label>Type</label>
+        <select id="h15-type">
+          <option value="Sports">Sports</option><option value="Pokemon">Pokemon</option>
+          <option value="MTG">MTG</option><option value="Other TCG">Other TCG</option><option value="Non-Sport">Non-Sport</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Condition</label>
+        <select id="h15-condition">
+          <option value="Raw - NM">Raw - NM</option><option value="Raw - Mint">Raw - Mint</option>
+          <option value="Raw - EX">Raw - EX</option><option value="PSA 10">PSA 10</option>
+          <option value="PSA 9">PSA 9</option><option value="PSA 8">PSA 8</option>
+          <option value="BGS 9.5">BGS 9.5</option><option value="SGC 9.5">SGC 9.5</option>
+          <option value="SGC 9">SGC 9</option><option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Take-In Cost ($)</label><input type="number" id="h15-cost" placeholder="0.00" min="0" step="0.01"></div>
+      <div class="form-group"><label>Ask Price ($)</label><input type="number" id="h15-ask" placeholder="0.00" min="0" step="0.01"></div>
+      <div class="form-group"><label>Status</label>
+        <select id="h15-status"><option value="available">Available</option><option value="sold">Sold</option></select>
+      </div>
+      <div class="form-group"><label>Sale Price ($)</label><input type="number" id="h15-sale" placeholder="0.00" min="0" step="0.01"></div>
+      <div class="form-group full"><label>Notes</label><textarea id="h15-notes" placeholder="e.g. RC, Auto, Serial #..."></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeHwy15Modal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveHwy15Card()">Save Card</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM DELETE MODAL -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal confirm-modal">
+    <h2>🗑️ Delete Card?</h2>
+    <p>This will permanently remove the card from your inventory. This cannot be undone.</p>
+    <div class="modal-actions" style="justify-content:center">
+      <button class="btn btn-cancel" onclick="closeConfirm()">Cancel</button>
+      <button class="btn" style="background:var(--red);color:#fff" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let inventory = [];
+async function loadInventoryFromAPI() {
+  try {
+    const res = await fetch('/api/cards');
+    inventory = await res.json();
+    renderTable();
+    renderBoxes();
+    updateGrandTotal();
+  } catch(e) {
+    console.error('Failed to load inventory:', e);
+  }
+}
+function save() {
+  // Data is saved to server via API calls, not localStorage
+}
+let editingId = null;
+let deleteId = null;
+let sortCol = 'name';
+let sortDir = 'asc';
+
+
+function fmt(n) {
+  if (n === null || n === undefined || n === '' || isNaN(n)) return '—';
+  return '$' + Number(n).toFixed(2);
+}
+
+function calcMargin(card) {
+  const cost = parseFloat(card.cost);
+  const ref = card.status === 'sold' ? parseFloat(card.sale) : parseFloat(card.ask);
+  if (isNaN(cost) || isNaN(ref)) return null;
+  return ref - cost;
+}
+
+function openAddModal(id) {
+  editingId = id || null;
+  const modal = document.getElementById('addModal');
+  document.getElementById('modalTitle').textContent = id ? 'Edit Card' : 'Add Card';
+  if (id) {
+    const c = inventory.find(x => String(x.id) === String(id) || x.id === id);
+    if (!c) { alert('Card not found'); return; }
+    document.getElementById('f-name').value = c.name || '';
+    document.getElementById('f-set').value = c.set_name || c.set || '';
+    document.getElementById('f-year').value = c.year || '';
+    document.getElementById('f-type').value = c.type || 'Sports';
+    document.getElementById('f-condition').value = c.condition || 'Raw - NM';
+    document.getElementById('f-cost').value = c.cost || '';
+    document.getElementById('f-ask').value = c.ask || '';
+    document.getElementById('f-status').value = c.status || 'available';
+    document.getElementById('f-sale').value = c.sale || '';
+    document.getElementById('f-notes').value = c.notes || '';
+  } else {
+    ['f-name','f-set','f-year','f-cost','f-ask','f-sale','f-notes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('f-type').value = 'Sports';
+    document.getElementById('f-condition').value = 'Raw - NM';
+    document.getElementById('f-status').value = 'available';
+  }
+  modal.classList.add('open');
+  document.getElementById('f-name').focus();
+}
+
+function closeModal() {
+  document.getElementById('addModal').classList.remove('open');
+  editingId = null;
+}
+
+function saveCard() {
+  const name = document.getElementById('f-name').value.trim();
+  const cost = document.getElementById('f-cost').value;
+  if (!name) { alert('Card name is required.'); return; }
+
+  const data = {
+    name,
+    set: document.getElementById('f-set').value.trim(),
+    year: document.getElementById('f-year').value.trim(),
+    type: document.getElementById('f-type').value,
+    condition: document.getElementById('f-condition').value,
+    cost: cost ? parseFloat(cost) : null,
+    ask: document.getElementById('f-ask').value ? parseFloat(document.getElementById('f-ask').value) : null,
+    status: document.getElementById('f-status').value,
+    sale: document.getElementById('f-sale').value ? parseFloat(document.getElementById('f-sale').value) : null,
+    notes: document.getElementById('f-notes').value.trim(),
+  };
+
+  if (editingId) {
+    fetch('/api/cards/' + editingId, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
+      name: data.name, set_name: data.set, year: data.year, type: data.type,
+      condition: data.condition, cost: data.cost, ask: data.ask,
+      status: data.status, sale: data.sale, notes: data.notes
+    })}).then(() => { closeModal(); loadInventoryFromAPI(); });
+  } else {
+    fetch('/api/cards', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
+      name: data.name, set_name: data.set, year: data.year, type: data.type,
+      condition: data.condition, cost: data.cost, ask: data.ask,
+      status: data.status, sale: data.sale, notes: data.notes
+    })}).then(() => { closeModal(); loadInventoryFromAPI(); });
+  }
+}
+
+function markSold(id) {
+  const c = inventory.find(x => String(x.id) === String(id) || x.id === id);
+  if (!c) return;
+  const price = prompt(`Enter sale price for "${c.name}":`, c.ask || '');
+  if (price === null) return;
+  fetch('/api/cards/' + id + '/sell', {method:'POST', headers:{'Content-Type':'application/json'}, 
+    body:JSON.stringify({sale_price: parseFloat(price) || c.ask || 0})
+  }).then(() => loadInventoryFromAPI());
+}
+
+function openDeleteConfirm(id) {
+  deleteId = String(id);
+  document.getElementById('confirmModal').classList.add('open');
+}
+function closeConfirm() {
+  document.getElementById('confirmModal').classList.remove('open');
+  deleteId = null;
+}
+function confirmDelete() {
+  if (!deleteId) return;
+  fetch('/api/cards/' + deleteId, {method:'DELETE'}).then(() => {
+    closeConfirm();
+    loadInventoryFromAPI();
+  });
+}
+
+function sortBy(col) {
+  if (sortCol === col) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+  else { sortCol = col; sortDir = 'asc'; }
+  renderTable();
+}
+
+function getFiltered() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const fType = document.getElementById('filterType').value;
+  const fStatus = document.getElementById('filterStatus').value;
+  return inventory.filter(c => {
+    const matchQ = !q || [c.name, c.set_name||c.set, c.year, c.notes, c.type].some(v => v && v.toString().toLowerCase().includes(q));
+    const matchType = !fType || c.type === fType;
+    const matchStatus = !fStatus || c.status === fStatus;
+    return matchQ && matchType && matchStatus;
+  });
+}
+
+function renderTable() {
+  const filtered = getFiltered();
+
+  // Sort
+  filtered.sort((a, b) => {
+    let va, vb;
+    if (sortCol === 'profit') { va = calcMargin(a) ?? -Infinity; vb = calcMargin(b) ?? -Infinity; }
+    else if (['cost','ask','year'].includes(sortCol)) { va = parseFloat(a[sortCol]) || 0; vb = parseFloat(b[sortCol]) || 0; }
+    else { const getV = (c) => sortCol === 'set' ? (c.set_name||c.set||'') : (c[sortCol]||''); va = getV(a).toString().toLowerCase(); vb = getV(b).toString().toLowerCase(); }
+    if (va < vb) return sortDir === 'asc' ? -1 : 1;
+    if (va > vb) return sortDir === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  // Update sort headers
+  document.querySelectorAll('th').forEach(th => { th.classList.remove('sort-asc','sort-desc'); });
+  const cols = ['name','type','year','condition','cost','ask','profit'];
+  const thIdx = cols.indexOf(sortCol);
+  if (thIdx >= 0) {
+    const ths = document.querySelectorAll('th');
+    ths[thIdx].classList.add(sortDir === 'asc' ? 'sort-asc' : 'sort-desc');
+  }
+
+  const tbody = document.getElementById('tableBody');
+  const empty = document.getElementById('emptyState');
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+  } else {
+    empty.style.display = 'none';
+    tbody.innerHTML = filtered.map(c => {
+      const margin = calcMargin(c);
+      const marginStr = margin === null ? '—' : (margin >= 0 ? '+' : '') + '$' + margin.toFixed(2);
+      const marginClass = margin === null ? 'profit-zero' : (margin > 0 ? 'profit-pos' : (margin < 0 ? 'profit-neg' : 'profit-zero'));
+      return `
+        <tr class="${c.status === 'sold' ? 'sold' : ''}">
+          <td class="card-name">
+            <div class="player">${esc(c.name)}</div>
+            <div class="set-year">${[c.set_name||c.set, c.year].filter(Boolean).join(' · ')}</div>
+          </td>
+          <td><span class="badge badge-type">${esc(c.type)}</span></td>
+          <td>${c.year || '—'}</td>
+          <td><span class="badge badge-condition">${esc(c.condition)}</span></td>
+          <td class="price-cell price-cost">${fmt(c.cost)}</td>
+          <td class="price-cell price-ask">${c.status === 'sold' ? fmt(c.sale) + ' <span style="color:var(--muted);font-size:0.7rem">(sold)</span>' : fmt(c.ask)}</td>
+          <td class="price-cell ${marginClass}">${marginStr}</td>
+          <td><span class="badge ${c.status === 'sold' ? 'badge-sold' : 'badge-available'}">${c.status}</span></td>
+          <td style="color:var(--muted);font-size:0.82rem;max-width:160px;white-space:normal">${esc(c.notes) || ''}</td>
+          <td class="actions-cell">
+            <button class="btn btn-edit" onclick="openAddModal('${c.id}')">Edit</button>
+            ${c.status !== 'sold' ? `<button class="btn btn-sold" onclick="markSold('${c.id}')">Sold</button>` : ''}
+            <button class="btn btn-ebay" onclick="openEbayComp('${c.id}')">eBay</button>
+            <button class="btn btn-cl" onclick="openCLComp('${c.id}')">CardLadder</button>
+            <button class="btn btn-danger" onclick="openDeleteConfirm('${c.id}')">Del</button>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+
+  // Header stats updated via updateGrandTotal()
+  updateGrandTotal();
+
+  // Summary bar
+  const visibleInvested = filtered.reduce((s, c) => s + (parseFloat(c.cost) || 0), 0);
+  const visibleAsk = filtered.filter(c => c.status !== 'sold').reduce((s, c) => s + (parseFloat(c.ask) || 0), 0);
+  const visibleSold = filtered.filter(c => c.status === 'sold').length;
+  const visibleAvail = filtered.filter(c => c.status !== 'sold').length;
+  const potentialProfit = filtered.filter(c => c.status !== 'sold').reduce((s, c) => {
+    const cost = parseFloat(c.cost) || 0;
+    const ask = parseFloat(c.ask) || 0;
+    return s + (ask - cost);
+  }, 0);
+
+  document.getElementById('summaryBar').innerHTML = `
+    <div class="sum-item"><span class="sum-label">Showing</span><span class="sum-val">${filtered.length} cards</span></div>
+    <div class="sum-item"><span class="sum-label">Invested (shown)</span><span class="sum-val" style="color:var(--red)">$${visibleInvested.toFixed(2)}</span></div>
+    <div class="sum-item"><span class="sum-label">Ask Value</span><span class="sum-val" style="color:var(--accent)">$${visibleAsk.toFixed(2)}</span></div>
+    <div class="sum-item"><span class="sum-label">Potential Margin</span><span class="sum-val" style="color:${potentialProfit>=0?'var(--green)':'var(--red)'}">${potentialProfit>=0?'+':'-'}$${Math.abs(potentialProfit).toFixed(2)}</span></div>
+    <div class="sum-item"><span class="sum-label">Available</span><span class="sum-val">${visibleAvail}</span></div>
+    <div class="sum-item"><span class="sum-label">Sold</span><span class="sum-val" style="color:var(--green)">${visibleSold}</span></div>
+  `;
+}
+
+function esc(str) {
+  if (!str) return '';
+  return str.toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── COMP BUTTONS ──────────────────────────────────
+function openEbayComp(id) {
+  const c = inventory.find(x => String(x.id) === String(id));
+  if (!c) return;
+  const q = [c.name, c.set_name||c.set, c.year, c.notes].filter(Boolean).join(' ');
+  const url = 'https://www.ebay.com/sch/i.html?_nkw=' + encodeURIComponent(q) + '&LH_Sold=1&LH_Complete=1';
+  window.open(url, '_blank');
+}
+
+function openCLComp(id) {
+  const c = inventory.find(x => String(x.id) === String(id));
+  if (!c) return;
+  const q = [c.name, c.set_name||c.set, c.year].filter(Boolean).join(' ');
+  const url = 'https://app.cardladder.com/sales-history?sort=date&direction=desc&q=' + encodeURIComponent(q);
+  window.open(url, '_blank');
+}
+
+// ── TABS ──────────────────────────────────────────
+let activeTab = 'cards';
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', (i===0&&tab==='cards')||(i===1&&tab==='boxes')||(i===2&&tab==='breaks')||(i===3&&tab==='hwy15')));
+  document.getElementById('tab-cards').classList.toggle('active', tab==='cards');
+  document.getElementById('tab-boxes').classList.toggle('active', tab==='boxes');
+  document.getElementById('tab-breaks').classList.toggle('active', tab==='breaks');
+  document.getElementById('tab-hwy15').classList.toggle('active', tab==='hwy15');
+  if (tab==='boxes') renderBoxes();
+  if (tab==='breaks') renderBreaks();
+  if (tab==='hwy15') { renderHwy15Table(); updateHwy15Header(); }
+  else { restoreHeader(); updateGrandTotal(); }
+}
+
+function updateHwy15Header() {
+  const total = hwy15Inventory.length;
+  const invested = hwy15Inventory.reduce((s,c) => s+(parseFloat(c.cost)||0), 0);
+  const profit = hwy15Inventory.filter(c=>c.status==='sold').reduce((s,c) => { const m=calcMargin(c); return s+(m||0); }, 0);
+  document.getElementById('hstat-total').textContent = total;
+  document.getElementById('hstat-invested').textContent = '$' + invested.toFixed(2);
+  document.getElementById('hstat-profit').textContent = (profit>=0?'+$':'-$') + Math.abs(profit).toFixed(2);
+  document.getElementById('headerLogo').innerHTML = 'Hwy 15 <span>Trading Co.</span>';
+}
+
+function restoreHeader() {
+  document.getElementById('headerLogo').innerHTML = 'Current <span>Inventory</span>';
+}
+
+// ── BOXES ─────────────────────────────────────────
+const _localBoxes = JSON.parse(localStorage.getItem('cardShowBoxes_v1') || 'null');
+const defaultBoxes = [
+  { id: 'b1001', name: '2022 Panini Optic NFL', year: '2022', type: 'NFL Football', qty: 4, cost: 45, value: 70, notes: 'Blaster Box', addedAt: new Date().toLocaleDateString() },
+  { id: 'b1002', name: '2021 Panini Optic NFL', year: '2021', type: 'NFL Football', qty: 3, cost: 35, value: 50, notes: 'Blaster Box — 3 sold @ $50 each (+$45 profit)', addedAt: new Date().toLocaleDateString() },
+  { id: 'b1003', name: '2021 Panini Optic NFL', year: '2021', type: 'NFL Football', qty: 4, cost: 20, value: 30, notes: 'Hager Box — 4 sold @ $35 each (+$60 profit)', addedAt: new Date().toLocaleDateString() },
+  { id: 'b1004', name: '2023 Panini Optic NFL', year: '2023', type: 'NFL Football', qty: 0, cost: 35, value: 55, notes: 'Blaster Box — SOLD OUT: 7 sold @ $55 each (+$140 profit)', addedAt: new Date().toLocaleDateString() },
+  { id: 'b1005', name: '2025 Panini Optic NFL', year: '2025', type: 'NFL Football', qty: 1, cost: 50, value: 75, notes: 'Mega Box — 1 sold @ $75 each (+$25 profit)', addedAt: new Date().toLocaleDateString() },
+  { id: 'b1006', name: '2025 Panini Optic NFL', year: '2025', type: 'NFL Football', qty: 3, cost: 40, value: 50, notes: 'Blaster Box — 4 sold @ $45 each (+$20 profit)', addedAt: new Date().toLocaleDateString() },
+  { id: 'b1007', name: 'One Piece Illustration Box Vol.6', year: '2026', type: 'Other TCG', qty: 0, cost: 30, value: 75, notes: 'Sealed Box — SOLD OUT: 2 sold @ $60 each (+$60 profit)', addedAt: new Date().toLocaleDateString() },
+  { id: 'b1008', name: '2025 Topps Chrome NFL', year: '2025', type: 'NFL Football', qty: 10, cost: 40, value: 80, notes: 'Blaster Box — 8 sold @ $80 each (+$320 profit)', addedAt: new Date().toLocaleDateString() },
+  { id: 'b1009', name: '2025 Topps Chrome NFL', year: '2025', type: 'NFL Football', qty: 20, cost: 20, value: 50, notes: 'Hanger Box — 10 sold @ $50 each (+$300 profit)', addedAt: new Date().toLocaleDateString() }
+];
+let boxes = _localBoxes ? _localBoxes : JSON.parse(JSON.stringify(defaultBoxes));
+if (_localBoxes && !_localBoxes.find(b => b.id === 'b1001')) {
+  boxes = [...defaultBoxes, ..._localBoxes];
+}
+let editingBoxId = null;
+
+function saveBoxes() { localStorage.setItem('cardShowBoxes_v1', JSON.stringify(boxes)); }
+
+function openBoxModal(id) {
+  editingBoxId = id || null;
+  document.getElementById('boxModalTitle').textContent = id ? 'Edit Box' : 'Add Sealed Box';
+  if (id) {
+    const b = boxes.find(x => x.id === id);
+    document.getElementById('bf-name').value = b.name || '';
+    document.getElementById('bf-year').value = b.year || '';
+    document.getElementById('bf-type').value = b.type || 'NFL Football';
+    document.getElementById('bf-qty').value = b.qty || 1;
+    document.getElementById('bf-cost').value = b.cost || '';
+    document.getElementById('bf-value').value = b.value || '';
+    document.getElementById('bf-notes').value = b.notes || '';
+  } else {
+    ['bf-name','bf-year','bf-cost','bf-value','bf-notes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('bf-qty').value = 1;
+    document.getElementById('bf-type').value = 'NFL Football';
+  }
+  document.getElementById('boxModal').classList.add('open');
+  document.getElementById('bf-name').focus();
+}
+
+function closeBoxModal() {
+  document.getElementById('boxModal').classList.remove('open');
+  editingBoxId = null;
+}
+
+function saveBox() {
+  const name = document.getElementById('bf-name').value.trim();
+  const cost = document.getElementById('bf-cost').value;
+  if (!name) { alert('Box name is required.'); return; }
+  const data = {
+    name,
+    year: document.getElementById('bf-year').value.trim(),
+    type: document.getElementById('bf-type').value,
+    qty: parseInt(document.getElementById('bf-qty').value) || 1,
+    cost: cost ? parseFloat(cost) : null,
+    value: document.getElementById('bf-value').value ? parseFloat(document.getElementById('bf-value').value) : null,
+    notes: document.getElementById('bf-notes').value.trim(),
+  };
+  if (editingBoxId) {
+    const idx = boxes.findIndex(x => x.id === editingBoxId);
+    boxes[idx] = { ...boxes[idx], ...data };
+  } else {
+    data.id = 'b' + Date.now();
+    data.addedAt = new Date().toLocaleDateString();
+    boxes.unshift(data);
+  }
+  saveBoxes();
+  closeBoxModal();
+  renderBoxes();
+  updateGrandTotal();
+}
+
+function deleteBox(id) {
+  if (!confirm('Delete this box?')) return;
+  boxes = boxes.filter(x => x.id !== id);
+  saveBoxes();
+  renderBoxes();
+  updateGrandTotal();
+}
+
+function renderBoxes() {
+  const grid = document.getElementById('boxesGrid');
+  const empty = document.getElementById('boxEmptyState');
+  const summary = document.getElementById('boxSummaryText');
+  if (boxes.length === 0) {
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    summary.textContent = '';
+    return;
+  }
+  empty.style.display = 'none';
+
+  // Compute totals
+  const totalRemaining = boxes.reduce((s,b) => s + (b.qty||0), 0);
+  const totalCost = boxes.reduce((s,b) => s + (parseFloat(b.cost)||0)*(b.qty||0), 0);
+  let totalSoldProfit = 0;
+  let totalSoldQty = 0;
+  boxes.forEach(b => {
+    const m = b.notes && b.notes.match(/(\d+) sold @ \$(\d+(?:\.\d+)?) each/);
+    if (m) { totalSoldQty += parseInt(m[1]); totalSoldProfit += parseInt(m[1]) * (parseFloat(m[2]) - (parseFloat(b.cost)||0)); }
+  });
+  summary.textContent = `${totalRemaining} remaining · ${totalSoldQty} sold · +$${totalSoldProfit.toFixed(2)} box profit`;
+
+  grid.innerHTML = boxes.map(b => {
+    const remainCost = (parseFloat(b.cost)||0)*(b.qty||0);
+    const remainVal = b.value && b.qty > 0 ? (parseFloat(b.value)||0)*(b.qty||0) : null;
+    const remainMargin = remainVal !== null ? remainVal - remainCost : null;
+
+    // Parse sold info from notes
+    const m = b.notes && b.notes.match(/(\d+) sold @ \$(\d+(?:\.\d+)?) each/);
+    const soldQty = m ? parseInt(m[1]) : 0;
+    const soldPrice = m ? parseFloat(m[2]) : 0;
+    const soldRevenue = soldQty * soldPrice;
+    const soldProfit = soldQty * (soldPrice - (parseFloat(b.cost)||0));
+
+    const baseNotes = b.notes ? b.notes.replace(/ ?—.*$/, '').trim() : '';
+    const isSoldOut = b.qty === 0;
+
+    return `<div class="box-card" style="${isSoldOut ? 'opacity:0.6;' : ''}">
+      <div class="box-actions">
+        <button class="btn btn-edit" onclick="openBoxModal('${b.id}')">Edit</button>
+        <button class="btn btn-danger" onclick="deleteBox('${b.id}')">Del</button>
+      </div>
+      <div class="box-card-name">${esc(b.name)} ${isSoldOut ? '<span style="color:var(--green);font-size:0.7rem">✅ SOLD OUT</span>' : ''}</div>
+      <div class="box-card-set">${[b.year, b.type, baseNotes].filter(Boolean).join(' · ')}</div>
+      <div class="box-card-stats">
+        <div class="box-stat"><span class="box-stat-label">Remaining</span><span class="box-stat-val">${b.qty||0}</span></div>
+        <div class="box-stat"><span class="box-stat-label">Cost/Box</span><span class="box-stat-val" style="color:var(--red)">${fmt(b.cost)}</span></div>
+        ${b.qty > 0 ? `<div class="box-stat"><span class="box-stat-label">Stock Cost</span><span class="box-stat-val" style="color:var(--red)">$${remainCost.toFixed(2)}</span></div>` : ''}
+        ${remainVal !== null ? `<div class="box-stat"><span class="box-stat-label">Stock Value</span><span class="box-stat-val" style="color:var(--accent)">$${remainVal.toFixed(2)}</span></div>` : ''}
+        ${remainMargin !== null ? `<div class="box-stat"><span class="box-stat-label">Stock Margin</span><span class="box-stat-val" style="color:${remainMargin>=0?'var(--green)':'var(--red)'}">${remainMargin>=0?'+':'-'}$${Math.abs(remainMargin).toFixed(2)}</span></div>` : ''}
+      </div>
+      ${soldQty > 0 ? `
+      <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:0.65rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--green);margin-bottom:6px;">📦 Sales Record</div>
+        <div class="box-card-stats">
+          <div class="box-stat"><span class="box-stat-label">Sold</span><span class="box-stat-val" style="color:var(--green)">${soldQty}</span></div>
+          <div class="box-stat"><span class="box-stat-label">Price/Box</span><span class="box-stat-val" style="color:var(--green)">$${soldPrice.toFixed(2)}</span></div>
+          <div class="box-stat"><span class="box-stat-label">Revenue</span><span class="box-stat-val" style="color:var(--green)">$${soldRevenue.toFixed(2)}</span></div>
+          <div class="box-stat"><span class="box-stat-label">Profit</span><span class="box-stat-val" style="color:var(--green)">+$${soldProfit.toFixed(2)}</span></div>
+        </div>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ── GRAND TOTAL ────────────────────────────────────
+function updateGrandTotal() {
+  if (typeof boxes === 'undefined') return;
+
+  // Singles
+  const cardsCost = inventory.reduce((s,c) => s + (parseFloat(c.cost)||0), 0);
+  const soldCards = inventory.filter(c => c.status === 'sold');
+  const cardsSoldProfit = soldCards.reduce((s,c) => s + ((parseFloat(c.sale)||0) - (parseFloat(c.cost)||0)), 0);
+  const cardsAsk = inventory.filter(c=>c.status!=='sold').reduce((s,c) => s + (parseFloat(c.ask)||0), 0);
+
+  // Boxes — parse sold qty/price from notes e.g. "3 sold @ $50 each"
+  let boxSoldProfit = 0;
+  if (typeof boxSales !== 'undefined') {
+    boxSales.forEach(s => {
+      const box = boxes.find(b => b.id === s.boxId);
+      if (box) boxSoldProfit += s.qty * (s.price - (parseFloat(box.cost)||0));
+    });
+  }
+
+  const totalProfit = cardsSoldProfit + boxSoldProfit;
+  const boxesCost = boxes.reduce((s,b) => s + (parseFloat(b.cost)||0)*(b.qty||1), 0);
+  const grandCost = cardsCost + boxesCost;
+  const boxesValue = boxes.reduce((s,b) => b.value && b.qty > 0 ? s + (parseFloat(b.value)||0)*(b.qty||1) : s, 0);
+
+  // Header
+  document.getElementById('hstat-total').textContent = inventory.length;
+  document.getElementById('hstat-invested').textContent = '$' + cardsCost.toFixed(2);
+  document.getElementById('hstat-profit').textContent = (totalProfit >= 0 ? '+$' : '-$') + Math.abs(totalProfit).toFixed(2);
+
+  // Grand total bar
+  document.getElementById('grandTotalBar').innerHTML = `
+    <div class="grand-item"><span class="grand-label">💳 Singles Invested</span><span class="grand-val" style="color:var(--red)">$${cardsCost.toFixed(2)}</span></div>
+    <div class="grand-item"><span class="grand-label">📦 Boxes Invested</span><span class="grand-val" style="color:var(--red)">$${boxesCost.toFixed(2)}</span></div>
+    <div class="grand-item"><span class="grand-label">🏆 Grand Total Invested</span><span class="grand-val" style="color:var(--accent)">$${grandCost.toFixed(2)}</span></div>
+    <div class="grand-item"><span class="grand-label">✅ Total Profit</span><span class="grand-val" style="color:var(--green)">${totalProfit>=0?'+':'-'}$${Math.abs(totalProfit).toFixed(2)}</span></div>
+    ${(cardsAsk+boxesValue)>0?`<div class="grand-item"><span class="grand-label">📈 Est. Remaining Value</span><span class="grand-val" style="color:var(--green)">$${(cardsAsk+boxesValue).toFixed(2)}</span></div>`:''}
+  `;
+}
+
+// ── BOX SUB-TABS ──────────────────────────────────
+function switchBoxTab(tab) {
+  document.getElementById('box-tab-inventory').style.display = tab === 'inventory' ? 'block' : 'none';
+  document.getElementById('box-tab-sales').style.display = tab === 'sales' ? 'block' : 'none';
+  document.getElementById('box-sub-inv').classList.toggle('active', tab === 'inventory');
+  document.getElementById('box-sub-sales').classList.toggle('active', tab === 'sales');
+  if (tab === 'sales') renderBoxSales();
+}
+
+// ── BOX SALES ──────────────────────────────────────
+const _localBoxSales = JSON.parse(localStorage.getItem('cardShowBoxSales_v1') || '[]');
+let boxSales = _localBoxSales;
+let editingBoxSaleId = null;
+
+function saveBoxSalesData() { localStorage.setItem('cardShowBoxSales_v1', JSON.stringify(boxSales)); }
+
+function openBoxSaleModal(id) {
+  editingBoxSaleId = id || null;
+  // Populate box dropdown
+  const sel = document.getElementById('bs-box');
+  sel.innerHTML = boxes.map(b => `<option value="${b.id}">${b.name} ${b.year||''} — ${b.notes||''}</option>`).join('');
+  if (id) {
+    const s = boxSales.find(x => x.id === id);
+    sel.value = s.boxId;
+    document.getElementById('bs-qty').value = s.qty;
+    document.getElementById('bs-price').value = s.price;
+    document.getElementById('bs-notes').value = s.notes || '';
+    document.getElementById('boxSaleModalTitle').textContent = 'Edit Box Sale';
+  } else {
+    document.getElementById('bs-qty').value = 1;
+    document.getElementById('bs-price').value = '';
+    document.getElementById('bs-notes').value = '';
+    document.getElementById('boxSaleModalTitle').textContent = 'Log Box Sale';
+  }
+  document.getElementById('boxSaleModal').classList.add('open');
+}
+
+function closeBoxSaleModal() {
+  document.getElementById('boxSaleModal').classList.remove('open');
+  editingBoxSaleId = null;
+}
+
+function saveBoxSale() {
+  const boxId = document.getElementById('bs-box').value;
+  const qty = parseInt(document.getElementById('bs-qty').value) || 0;
+  const price = parseFloat(document.getElementById('bs-price').value) || 0;
+  const notes = document.getElementById('bs-notes').value.trim();
+  if (!boxId || !qty || !price) { alert('Box, qty and price are required.'); return; }
+  if (editingBoxSaleId) {
+    const idx = boxSales.findIndex(x => x.id === editingBoxSaleId);
+    boxSales[idx] = { ...boxSales[idx], boxId, qty, price, notes };
+  } else {
+    boxSales.push({ id: 'bs' + Date.now(), boxId, qty, price, notes, soldAt: new Date().toLocaleDateString() });
+  }
+  saveBoxSalesData();
+  closeBoxSaleModal();
+  renderBoxSales();
+  updateGrandTotal();
+}
+
+function deleteBoxSale(id) {
+  if (!confirm('Delete this sale record?')) return;
+  boxSales = boxSales.filter(x => x.id !== id);
+  saveBoxSalesData();
+  renderBoxSales();
+  updateGrandTotal();
+}
+
+function renderBoxSales() {
+  const tbody = document.getElementById('boxSalesBody');
+  if (!tbody) return;
+  if (boxSales.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:40px;">No box sales logged yet. Click "+ Log Box Sale" to add one.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = boxSales.map(s => {
+    const box = boxes.find(b => b.id === s.boxId);
+    if (!box) return '';
+    const cost = (parseFloat(box.cost)||0) * s.qty;
+    const revenue = s.price * s.qty;
+    const profit = revenue - cost;
+    return `<tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:10px 12px;font-weight:600;">${esc(box.name)}<div style="font-size:0.75rem;color:var(--muted)">${box.year||''} ${s.notes ? '· ' + esc(s.notes) : ''}</div></td>
+      <td style="padding:10px 12px;"><span class="badge badge-type">${esc(box.type)}</span></td>
+      <td style="padding:10px 12px;font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;">${s.qty}</td>
+      <td style="padding:10px 12px;font-family:'Barlow Condensed',sans-serif;color:var(--accent);font-weight:700;">$${s.price.toFixed(2)}</td>
+      <td style="padding:10px 12px;font-family:'Barlow Condensed',sans-serif;color:var(--red);font-weight:700;">$${(parseFloat(box.cost)||0).toFixed(2)}</td>
+      <td style="padding:10px 12px;font-family:'Barlow Condensed',sans-serif;color:var(--accent);font-weight:700;">$${revenue.toFixed(2)}</td>
+      <td style="padding:10px 12px;font-family:'Barlow Condensed',sans-serif;color:var(--green);font-weight:700;">+$${profit.toFixed(2)}</td>
+      <td style="padding:10px 12px;"><div style="display:flex;gap:5px;">
+        <button class="btn btn-edit" style="padding:4px 9px;font-size:0.75rem;" onclick="openBoxSaleModal('${s.id}')">Edit</button>
+        <button class="btn btn-danger" style="padding:4px 9px;font-size:0.75rem;" onclick="deleteBoxSale('${s.id}')">Del</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── BREAKS ────────────────────────────────────────
+const WHATNOT_COMMISSION = 0.109;
+let breaks = JSON.parse(localStorage.getItem('shotimeBreaks_v1') || '[]');
+let editingBreakId = null;
+
+function saveBreaksData() { localStorage.setItem('shotimeBreaks_v1', JSON.stringify(breaks)); }
+
+function updateBreakCalc() {
+  const sales = parseFloat(document.getElementById('brk-sales').value) || 0;
+  const expenses = parseFloat(document.getElementById('brk-expenses').value) || 0;
+  const promo = parseFloat(document.getElementById('brk-promo').value) || 0;
+  const commission = sales * WHATNOT_COMMISSION;
+  const netAfterCommission = sales - commission;
+  let productCost = 0;
+  document.querySelectorAll('[data-boxid]').forEach(input => {
+    productCost += (parseInt(input.value)||0) * (parseFloat(input.dataset.boxcost)||0);
+  });
+  const netProfit = sales - commission - expenses - promo - productCost;
+  document.getElementById('brk-commission').value = '-$' + commission.toFixed(2);
+  document.getElementById('brk-net-commission').value = '$' + netAfterCommission.toFixed(2);
+  document.getElementById('brk-net-profit').value = (netProfit >= 0 ? '+$' : '-$') + Math.abs(netProfit).toFixed(2);
+  document.getElementById('brk-net-profit').style.color = netProfit >= 0 ? 'var(--green)' : 'var(--red)';
+}
+
+function openBreakModal(id) {
+  editingBreakId = id || null;
+  document.getElementById('breakModalTitle').textContent = id ? 'Edit Break' : 'Log Whatnot Break';
+  loadBreakBoxes(id);
+
+  if (id) {
+    const brk = breaks.find(x => x.id === id);
+    document.getElementById('brk-name').value = brk.name || '';
+    document.getElementById('brk-date').value = brk.date || '';
+    document.getElementById('brk-sales').value = brk.sales || '';
+    document.getElementById('brk-expenses').value = brk.expenses || '';
+    document.getElementById('brk-promo').value = brk.promo || '';
+    document.getElementById('brk-notes').value = brk.notes || '';
+  } else {
+    ['brk-name','brk-sales','brk-expenses','brk-promo','brk-notes','brk-commission','brk-net-commission','brk-net-profit'].forEach(i => { const el=document.getElementById(i); if(el) el.value=''; });
+    document.getElementById('brk-date').value = new Date().toISOString().split('T')[0];
+  }
+  document.getElementById('breakModal').classList.add('open');
+}
+
+function loadBreakBoxes(editId) {
+  // Save current qty values before reload
+  const currentQtys = {};
+  document.querySelectorAll('[data-boxid]').forEach(input => {
+    if (input.value > 0) currentQtys[input.dataset.boxid] = input.value;
+  });
+  fetch('/api/boxes').then(r=>r.json()).then(liveBoxes => {
+    const boxesList = document.getElementById('brk-boxes-list');
+    if (!liveBoxes || liveBoxes.length === 0) {
+      boxesList.innerHTML = '<span style="color:var(--muted);font-size:0.85rem;">No boxes in inventory</span>';
+      return;
+    }
+    // Build rows using DOM manipulation to avoid template literal escaping issues
+    boxesList.innerHTML = '';
+    liveBoxes.forEach(b => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);';
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.id = 'brk-box-' + b.id;
+      input.min = '0';
+      input.value = currentQtys[b.id] || '0';
+      input.style.cssText = 'width:65px;background:var(--card);border:1px solid var(--border);border-radius:4px;padding:5px;color:var(--text);text-align:center;';
+      input.dataset.boxid = b.id;
+      input.dataset.boxname = b.name;
+      input.dataset.boxcost = b.cost || 0;
+      input.addEventListener('input', updateBreakCalc);
+      const info = document.createElement('div');
+      const title = document.createElement('div');
+      title.style.cssText = 'font-size:0.88rem;font-weight:600;';
+      title.textContent = b.name + (b.year ? ' ' + b.year : '');
+      const sub = document.createElement('div');
+      sub.style.cssText = 'font-size:0.75rem;color:var(--muted);';
+      sub.textContent = b.qty + ' remaining · $' + (b.cost||0) + '/box' + (b.notes ? ' · ' + b.notes : '');
+      info.appendChild(title);
+      info.appendChild(sub);
+      row.appendChild(input);
+      row.appendChild(info);
+      boxesList.appendChild(row);
+    });
+    // Restore saved qtys from existing break if editing
+    if (editId) {
+      const brk = breaks.find(x => x.id === editId);
+      if (brk && brk.boxesUsed) {
+        brk.boxesUsed.forEach(bu => {
+          const inp = document.getElementById('brk-box-' + bu.boxId);
+          if (inp) inp.value = bu.qty;
+        });
+      }
+    }
+    updateBreakCalc();
+  });
+}
+
+function refreshBreakBoxes() {
+  loadBreakBoxes(editingBreakId);
+}
+
+function closeBreakModal() {
+  document.getElementById('breakModal').classList.remove('open');
+  editingBreakId = null;
+}
+
+async function saveBreak() {
+  const name = document.getElementById('brk-name').value.trim();
+  if (!name) { alert('Break name is required.'); return; }
+  const sales = parseFloat(document.getElementById('brk-sales').value) || 0;
+  const commission = sales * WHATNOT_COMMISSION;
+  const expenses = parseFloat(document.getElementById('brk-expenses').value) || 0;
+  const promo = parseFloat(document.getElementById('brk-promo').value) || 0;
+  const liveBoxes = await fetch('/api/boxes').then(r=>r.json());
+  const boxInputs = document.querySelectorAll('[data-boxid]');
+  const boxesUsed = [];
+  let productCost = 0;
+  for (const input of boxInputs) {
+    const qty = parseInt(input.value) || 0;
+    if (qty > 0) {
+      const boxId = parseInt(input.dataset.boxid);
+      const boxCost = parseFloat(input.dataset.boxcost) || 0;
+      boxesUsed.push({ boxId, boxName: input.dataset.boxname, qty, costEach: boxCost });
+      productCost += qty * boxCost;
+      const box = liveBoxes.find(b => b.id === boxId);
+      if (box) {
+        await fetch('/api/boxes/' + boxId, {
+          method: 'PUT', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ name:box.name, year:box.year, type:box.type, qty:Math.max(0,box.qty-qty), cost:box.cost, value:box.value, notes:box.notes })
+        });
+      }
+    }
+  }
+  const data = { id: editingBreakId||'brk'+Date.now(), name, date:document.getElementById('brk-date').value, sales, commission, expenses, promo, productCost, notes:document.getElementById('brk-notes').value.trim(), boxesUsed };
+  if (editingBreakId) { const idx=breaks.findIndex(x=>x.id===editingBreakId); breaks[idx]=data; }
+  else { breaks.unshift(data); }
+  saveBreaksData();
+  closeBreakModal();
+  renderBreaks();
+}
+
+function deleteBreak(id) {
+  if (!confirm('Delete this break?')) return;
+  breaks = breaks.filter(x => x.id !== id);
+  saveBreaksData();
+  renderBreaks();
+}
+
+function renderBreaks() {
+  const tbody = document.getElementById('breaksTableBody');
+  const summary = document.getElementById('breakSummaryText');
+  if (!tbody) return;
+  if (breaks.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:40px;">No breaks logged yet.</td></tr>';
+    summary.textContent = '';
+    document.getElementById('breaksGrandBar').innerHTML = '';
+    return;
+  }
+  const tSales = breaks.reduce((s,b)=>s+b.sales,0);
+  const tComm = breaks.reduce((s,b)=>s+(b.commission||b.sales*WHATNOT_COMMISSION),0);
+  const tCost = breaks.reduce((s,b)=>s+(b.productCost||0),0);
+  const tExp = breaks.reduce((s,b)=>s+(b.expenses||0),0);
+  const tPromo = breaks.reduce((s,b)=>s+(b.promo||0),0);
+  const tNet = tSales - tComm - tCost - tExp - tPromo;
+  summary.textContent = `${breaks.length} break${breaks.length!==1?'s':''} · $${tSales.toFixed(2)} gross · ${tNet>=0?'+':'-'}$${Math.abs(tNet).toFixed(2)} net`;
+  document.getElementById('breaksGrandBar').innerHTML = `
+    <div class="grand-item"><span class="grand-label">💰 Gross Sales</span><span class="grand-val" style="color:var(--accent)">$${tSales.toFixed(2)}</span></div>
+    <div class="grand-item"><span class="grand-label">📺 Whatnot Commission</span><span class="grand-val" style="color:var(--red)">-$${tComm.toFixed(2)}</span></div>
+    <div class="grand-item"><span class="grand-label">📦 Product Cost</span><span class="grand-val" style="color:var(--red)">-$${tCost.toFixed(2)}</span></div>
+    <div class="grand-item"><span class="grand-label">💸 Expenses</span><span class="grand-val" style="color:var(--red)">-$${tExp.toFixed(2)}</span></div>
+    <div class="grand-item"><span class="grand-label">📣 Promo</span><span class="grand-val" style="color:var(--red)">-$${tPromo.toFixed(2)}</span></div>
+    <div class="grand-item"><span class="grand-label">✅ Net Profit</span><span class="grand-val" style="color:${tNet>=0?'var(--green)':'var(--red)'}">${tNet>=0?'+':'-'}$${Math.abs(tNet).toFixed(2)}</span></div>`;
+  tbody.innerHTML = breaks.map(brk => {
+    const comm = brk.commission||brk.sales*WHATNOT_COMMISSION;
+    const net = brk.sales - comm - (brk.productCost||0) - (brk.expenses||0) - (brk.promo||0);
+    const boxSummary = brk.boxesUsed&&brk.boxesUsed.length>0 ? brk.boxesUsed.map(b=>`${b.qty}x ${b.boxName}`).join(', ') : '—';
+    return `<tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:10px 12px;color:var(--muted);font-size:0.85rem;">${brk.date||'—'}</td>
+      <td style="padding:10px 12px;font-weight:600;">${esc(brk.name)}<div style="font-size:0.75rem;color:var(--muted)">${esc(brk.notes||'')}</div></td>
+      <td style="padding:10px 12px;font-size:0.82rem;color:var(--muted);max-width:160px;white-space:normal;">${esc(boxSummary)}</td>
+      <td style="padding:10px 12px;font-family:'Barlow Condensed',sans-serif;color:var(--red);font-weight:700;">$${(brk.productCost||0).toFixed(2)}</td>
+      <td style="padding:10px 12px;font-family:'Barlow Condensed',sans-serif;color:var(--accent);font-weight:700;">$${brk.sales.toFixed(2)}</td>
+      <td style="padding:10px 12px;font-family:'Barlow Condensed',sans-serif;color:var(--red);font-weight:700;">-$${comm.toFixed(2)}</td>
+      <td style="padding:10px 12px;font-family:'Barlow Condensed',sans-serif;color:var(--red);font-weight:700;">$${(brk.expenses||0).toFixed(2)}</td>
+      <td style="padding:10px 12px;font-family:'Barlow Condensed',sans-serif;color:var(--red);font-weight:700;">$${(brk.promo||0).toFixed(2)}</td>
+      <td style="padding:10px 12px;font-family:'Barlow Condensed',sans-serif;font-weight:700;color:${net>=0?'var(--green)':'var(--red)'};">${net>=0?'+':'-'}$${Math.abs(net).toFixed(2)}</td>
+      <td style="padding:10px 12px;"><div style="display:flex;gap:5px;">
+        <button class="btn btn-edit" style="padding:4px 9px;font-size:0.75rem;" onclick="openBreakModal('${brk.id}')">Edit</button>
+        <button class="btn btn-danger" style="padding:4px 9px;font-size:0.75rem;" onclick="deleteBreak('${brk.id}')">Del</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── HWY 15 TRADING CO. ────────────────────────────
+const _hwy15Local = JSON.parse(localStorage.getItem('hwy15Inventory_v1') || '[]');
+let hwy15Inventory = _hwy15Local;
+let hwy15EditingId = null;
+let hwy15SortCol = 'name';
+let hwy15SortDir = 'asc';
+
+function saveHwy15() { localStorage.setItem('hwy15Inventory_v1', JSON.stringify(hwy15Inventory)); }
+
+function openHwy15Modal(id) {
+  hwy15EditingId = id || null;
+  document.getElementById('hwy15ModalTitle').textContent = id ? 'Hwy 15 Trading Co. — Edit Card' : 'Hwy 15 Trading Co. — Add Card';
+  if (id) {
+    const c = hwy15Inventory.find(x => x.id === id);
+    document.getElementById('h15-name').value = c.name || '';
+    document.getElementById('h15-set').value = c.set || '';
+    document.getElementById('h15-year').value = c.year || '';
+    document.getElementById('h15-type').value = c.type || 'Sports';
+    document.getElementById('h15-condition').value = c.condition || 'Raw - NM';
+    document.getElementById('h15-cost').value = c.cost || '';
+    document.getElementById('h15-ask').value = c.ask || '';
+    document.getElementById('h15-status').value = c.status || 'available';
+    document.getElementById('h15-sale').value = c.sale || '';
+    document.getElementById('h15-notes').value = c.notes || '';
+  } else {
+    ['h15-name','h15-set','h15-year','h15-cost','h15-ask','h15-sale','h15-notes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('h15-type').value = 'Sports';
+    document.getElementById('h15-condition').value = 'Raw - NM';
+    document.getElementById('h15-status').value = 'available';
+  }
+  document.getElementById('hwy15Modal').classList.add('open');
+  document.getElementById('h15-name').focus();
+}
+
+function closeHwy15Modal() {
+  document.getElementById('hwy15Modal').classList.remove('open');
+  hwy15EditingId = null;
+}
+
+function saveHwy15Card() {
+  const name = document.getElementById('h15-name').value.trim();
+  if (!name) { alert('Card name is required.'); return; }
+  const data = {
+    name,
+    set: document.getElementById('h15-set').value.trim(),
+    year: document.getElementById('h15-year').value.trim(),
+    type: document.getElementById('h15-type').value,
+    condition: document.getElementById('h15-condition').value,
+    cost: document.getElementById('h15-cost').value ? parseFloat(document.getElementById('h15-cost').value) : null,
+    ask: document.getElementById('h15-ask').value ? parseFloat(document.getElementById('h15-ask').value) : null,
+    status: document.getElementById('h15-status').value,
+    sale: document.getElementById('h15-sale').value ? parseFloat(document.getElementById('h15-sale').value) : null,
+    notes: document.getElementById('h15-notes').value.trim(),
+  };
+  if (hwy15EditingId) {
+    const idx = hwy15Inventory.findIndex(x => x.id === hwy15EditingId);
+    hwy15Inventory[idx] = { ...hwy15Inventory[idx], ...data };
+  } else {
+    data.id = Date.now().toString();
+    data.addedAt = new Date().toLocaleDateString();
+    hwy15Inventory.unshift(data);
+  }
+  saveHwy15();
+  closeHwy15Modal();
+  renderHwy15Table();
+}
+
+function hwy15MarkSold(id) {
+  const c = hwy15Inventory.find(x => x.id === id);
+  if (!c) return;
+  const price = prompt(`Enter sale price for "${c.name}":`, c.ask || '');
+  if (price === null) return;
+  c.status = 'sold';
+  c.sale = parseFloat(price) || 0;
+  saveHwy15();
+  renderHwy15Table();
+}
+
+function hwy15Delete(id) {
+  if (!confirm('Delete this card?')) return;
+  hwy15Inventory = hwy15Inventory.filter(x => x.id !== id);
+  saveHwy15();
+  renderHwy15Table();
+}
+
+function hwy15SortBy(col) {
+  if (hwy15SortCol === col) hwy15SortDir = hwy15SortDir === 'asc' ? 'desc' : 'asc';
+  else { hwy15SortCol = col; hwy15SortDir = 'asc'; }
+  renderHwy15Table();
+}
+
+function hwy15OpenEbay(id) {
+  const c = hwy15Inventory.find(x => x.id === id);
+  if (!c) return;
+  const q = [c.name, c.set, c.year, c.notes].filter(Boolean).join(' ');
+  window.open('https://www.ebay.com/sch/i.html?_nkw=' + encodeURIComponent(q) + '&LH_Sold=1&LH_Complete=1', '_blank');
+}
+
+function hwy15OpenCL(id) {
+  const c = hwy15Inventory.find(x => x.id === id);
+  if (!c) return;
+  const q = [c.name, c.set, c.year].filter(Boolean).join(' ');
+  window.open('https://app.cardladder.com/sales-history?sort=date&direction=desc&q=' + encodeURIComponent(q), '_blank');
+}
+
+function renderHwy15Table() {
+  const q = document.getElementById('hwy15SearchInput').value.toLowerCase();
+  const fType = document.getElementById('hwy15FilterType').value;
+  const fStatus = document.getElementById('hwy15FilterStatus').value;
+
+  let filtered = hwy15Inventory.filter(c => {
+    const matchQ = !q || [c.name, c.set_name||c.set, c.year, c.notes, c.type].some(v => v && v.toString().toLowerCase().includes(q));
+    const matchType = !fType || c.type === fType;
+    const matchStatus = !fStatus || c.status === fStatus;
+    return matchQ && matchType && matchStatus;
+  });
+
+  filtered.sort((a, b) => {
+    let va, vb;
+    if (hwy15SortCol === 'profit') { va = calcMargin(a) ?? -Infinity; vb = calcMargin(b) ?? -Infinity; }
+    else if (['cost','ask','year'].includes(hwy15SortCol)) { va = parseFloat(a[hwy15SortCol])||0; vb = parseFloat(b[hwy15SortCol])||0; }
+    else { va = (a[hwy15SortCol]||'').toString().toLowerCase(); vb = (b[hwy15SortCol]||'').toString().toLowerCase(); }
+    return hwy15SortDir === 'asc' ? (va < vb ? -1 : va > vb ? 1 : 0) : (va > vb ? -1 : va < vb ? 1 : 0);
+  });
+
+  const tbody = document.getElementById('hwy15TableBody');
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:40px;">No cards yet. Click "+ Add Card" to get started.</td></tr>';
+  } else {
+    tbody.innerHTML = filtered.map(c => {
+      const margin = calcMargin(c);
+      const marginStr = margin === null ? '—' : (margin >= 0 ? '+' : '') + '$' + margin.toFixed(2);
+      const marginClass = margin === null ? 'profit-zero' : margin > 0 ? 'profit-pos' : margin < 0 ? 'profit-neg' : 'profit-zero';
+      return `<tr class="${c.status==='sold'?'sold':''}">
+        <td class="card-name"><div class="player">${esc(c.name)}</div><div class="set-year">${[c.set_name||c.set,c.year].filter(Boolean).join(' · ')}</div></td>
+        <td><span class="badge badge-type">${esc(c.type)}</span></td>
+        <td>${c.year||'—'}</td>
+        <td><span class="badge badge-condition">${esc(c.condition)}</span></td>
+        <td class="price-cell price-cost">${fmt(c.cost)}</td>
+        <td class="price-cell price-ask">${c.status==='sold'?fmt(c.sale)+' <span style="color:var(--muted);font-size:0.7rem">(sold)</span>':fmt(c.ask)}</td>
+        <td class="price-cell ${marginClass}">${marginStr}</td>
+        <td><span class="badge ${c.status==='sold'?'badge-sold':'badge-available'}">${c.status}</span></td>
+        <td style="color:var(--muted);font-size:0.82rem;max-width:160px;white-space:normal">${esc(c.notes)||''}</td>
+        <td class="actions-cell">
+          <button class="btn btn-edit" onclick="openHwy15Modal('${c.id}')">Edit</button>
+          ${c.status!=='sold'?`<button class="btn btn-sold" onclick="hwy15MarkSold('${c.id}')">Sold</button>`:''}
+          <button class="btn btn-ebay" onclick="hwy15OpenEbay('${c.id}')">eBay</button>
+          <button class="btn btn-cl" onclick="hwy15OpenCL('${c.id}')">CL</button>
+          <button class="btn btn-danger" onclick="hwy15Delete('${c.id}')">Del</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Stats
+  const totalInvested = hwy15Inventory.reduce((s,c) => s+(parseFloat(c.cost)||0), 0);
+  const soldProfit = hwy15Inventory.filter(c=>c.status==='sold').reduce((s,c) => { const m=calcMargin(c); return s+(m||0); }, 0);
+  const visibleInvested = filtered.reduce((s,c) => s+(parseFloat(c.cost)||0), 0);
+  const visibleAsk = filtered.filter(c=>c.status!=='sold').reduce((s,c) => s+(parseFloat(c.ask)||0), 0);
+  const visibleSold = filtered.filter(c=>c.status==='sold').length;
+  const visibleAvail = filtered.filter(c=>c.status!=='sold').length;
+
+  document.getElementById('hwy15GrandBar').innerHTML = `
+    <div class="grand-item"><span class="grand-label">💳 Total Invested</span><span class="grand-val" style="color:var(--red)">$${totalInvested.toFixed(2)}</span></div>
+    <div class="grand-item"><span class="grand-label">✅ Realized Profit</span><span class="grand-val" style="color:var(--green)">+$${soldProfit.toFixed(2)}</span></div>
+    <div class="grand-item"><span class="grand-label">📈 Ask Value</span><span class="grand-val" style="color:var(--accent)">$${visibleAsk.toFixed(2)}</span></div>
+  `;
+
+  document.getElementById('hwy15SummaryBar').innerHTML = `
+    <div class="sum-item"><span class="sum-label">Showing</span><span class="sum-val">${filtered.length} cards</span></div>
+    <div class="sum-item"><span class="sum-label">Invested</span><span class="sum-val" style="color:var(--red)">$${visibleInvested.toFixed(2)}</span></div>
+    <div class="sum-item"><span class="sum-label">Available</span><span class="sum-val">${visibleAvail}</span></div>
+    <div class="sum-item"><span class="sum-label">Sold</span><span class="sum-val" style="color:var(--green)">${visibleSold}</span></div>
+  `;
+}
+
+// ── CLOSE MODALS ───────────────────────────────────
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) { closeModal(); closeConfirm(); closeBoxModal(); closeBoxSaleModal(); closeHwy15Modal(); closeBreakModal(); } });
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeConfirm(); closeBoxModal(); closeBoxSaleModal(); closeHwy15Modal(); closeBreakModal(); } });
+
+loadInventoryFromAPI();
+renderBoxSales();
+updateGrandTotal();
+</script>
+</body>
+</html>
