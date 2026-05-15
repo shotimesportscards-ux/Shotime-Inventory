@@ -9,7 +9,20 @@ if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir);
 const adapter = new FileSync(path.join(dataDir, 'inventory.json'));
 const db = low(adapter);
 
-db.defaults({ cards: [], boxes: [], nextCardId: 1, nextBoxId: 1 }).write();
+db.defaults({
+  cards: [],
+  boxes: [],
+  breaks: [],
+  boxSales: [],
+  hwy15Cards: [],
+  lowEndBoxes: [],
+  nextCardId: 1,
+  nextBoxId: 1,
+  nextBreakId: 1,
+  nextBoxSaleId: 1,
+  nextHwy15Id: 1,
+  nextLowEndId: 1,
+}).write();
 
 if (db.get('cards').value().length === 0) {
   console.log('Seeding database...');
@@ -51,7 +64,7 @@ if (db.get('cards').value().length === 0) {
     { name: 'Shohei Ohtani', set_name: '2024 Topps 50/50', year: '2024', type: 'Sports', condition: 'Raw - NM', cost: 180.0, ask: null, status: 'available', sale: null, notes: 'Gold Refractor HR #35 /50' },
     { name: 'John Elway', set_name: '2006 Topps Paradigm Signatures', year: '2006', type: 'Sports', condition: 'Raw - NM', cost: 105.0, ask: null, status: 'available', sale: null, notes: 'Patch Auto /99' },
     { name: 'Tom Brady', set_name: '2005 Donruss Leaf', year: '2005', type: 'Sports', condition: 'Raw - NM', cost: 100.0, ask: null, status: 'available', sale: null, notes: 'Game Worn Patch /75' },
-    { name: 'Ja\'Marr Chase', set_name: '2021 Panini Prizm', year: '2021', type: 'Sports', condition: 'PSA 9', cost: 100.0, ask: null, status: 'available', sale: null, notes: 'Red Wave RC' },
+    { name: "Ja'Marr Chase", set_name: '2021 Panini Prizm', year: '2021', type: 'Sports', condition: 'PSA 9', cost: 100.0, ask: null, status: 'available', sale: null, notes: 'Red Wave RC' },
     { name: 'Shohei Ohtani', set_name: '2019 Topps Chrome', year: '2019', type: 'Sports', condition: 'Raw - NM', cost: 35.0, ask: null, status: 'available', sale: null, notes: '1984 Topps Design Insert' },
     { name: 'Travis Hunter', set_name: '2025 Panini Mosaic', year: '2025', type: 'Sports', condition: 'Raw - NM', cost: 60.0, ask: null, status: 'available', sale: null, notes: 'Genesis RC' },
     { name: 'Sam Darnold', set_name: '2025 Panini Prizm', year: '2025', type: 'Sports', condition: 'Raw - NM', cost: 30.0, ask: 40.0, status: 'available', sale: null, notes: 'Green Scope /75' },
